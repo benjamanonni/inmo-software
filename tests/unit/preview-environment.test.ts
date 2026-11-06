@@ -10,6 +10,13 @@ const valid = {
 };
 test("Preview refuses production, local URLs, fixture mode and administrative keys", () => {
   assert.doesNotThrow(() => validatePreviewEnvironment(valid));
+  assert.doesNotThrow(() =>
+    validatePreviewEnvironment({
+      ...valid,
+      VITE_VERCEL_ENV: "preview",
+      VITE_VERCEL_GIT_COMMIT_SHA: "fictitious-sha",
+    }),
+  );
   assert.doesNotThrow(() => validatePreviewEnvironment({}));
   for (const invalid of [
     { VERCEL_ENV: "production" },
@@ -21,6 +28,7 @@ test("Preview refuses production, local URLs, fixture mode and administrative ke
     },
     { VITE_SUPABASE_PUBLISHABLE_KEY: "sb_secret_fictitious" },
     { VITE_SUPABASE_SERVICE_ROLE_KEY: "must-never-be-public" },
+    { VITE_VERCEL_SECRET_KEY: "must-never-be-public" },
   ])
     assert.throws(() => validatePreviewEnvironment({ ...valid, ...invalid }));
   const jwt = (role: string, ref: string) =>

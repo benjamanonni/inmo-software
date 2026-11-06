@@ -45,6 +45,24 @@ export function validatePreviewEnvironment(
     "VITE_SUPABASE_URL",
     "VITE_SUPABASE_PUBLISHABLE_KEY",
     "VITE_ENABLE_DEMO",
+    ...[
+      "ENV",
+      "TARGET_ENV",
+      "URL",
+      "BRANCH_URL",
+      "PROJECT_PRODUCTION_URL",
+      "HASH_SALT",
+      "GIT_PROVIDER",
+      "GIT_REPO_SLUG",
+      "GIT_REPO_OWNER",
+      "GIT_REPO_ID",
+      "GIT_COMMIT_REF",
+      "GIT_COMMIT_SHA",
+      "GIT_COMMIT_MESSAGE",
+      "GIT_COMMIT_AUTHOR_LOGIN",
+      "GIT_COMMIT_AUTHOR_NAME",
+      "GIT_PULL_REQUEST_ID",
+    ].map((name) => `VITE_VERCEL_${name}`),
   ]);
   if (
     Object.keys(env).some(

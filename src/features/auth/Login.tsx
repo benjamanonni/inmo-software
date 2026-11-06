@@ -49,9 +49,13 @@ export function Login({ reset = false }: { reset?: boolean }) {
                 await db.auth.signOut();
                 setMessage("Contraseña actualizada. Volvé a iniciar sesión.");
               } else if (recovery) {
-                await db.auth.resetPasswordForEmail(String(data.get("email")), {
-                  redirectTo: `${location.origin}/recuperar`,
-                });
+                const { error } = await db.auth.resetPasswordForEmail(
+                  String(data.get("email")),
+                  {
+                    redirectTo: `${location.origin}/recuperar`,
+                  },
+                );
+                if (error) throw error;
                 setMessage(
                   "Si la cuenta puede recuperar acceso, recibirá instrucciones por correo.",
                 );
