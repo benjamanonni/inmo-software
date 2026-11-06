@@ -26,4 +26,3 @@ minimum_password_length = 12
 enable_confirmations = true
 [functions.manage-buyer]
 verify_jwt = true
-
