@@ -13,7 +13,7 @@ if (!result.stdout.includes("export type Database"))
   throw new Error("Unexpected output; types not written.");
 await writeFile(
   "src/integrations/supabase/database.generated.ts",
-  result.stdout,
+  result.stdout.replace(/[ \t]+$/gm, ""),
 );
 console.log(
   "Types generated from local schema. Review them against boundary validators before committing.",
