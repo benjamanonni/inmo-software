@@ -1,12 +1,19 @@
+import { ContractForm } from "../contracts/ContractForm";
+import { summarizeInstallments } from "../installments/summary";
+import { installmentStatus } from "../installments/status";
 import { useState } from "react";
 import { useDemo, money } from "../../demo-data";
 import { Panel, Modal, Badge, Empty, Metric } from "../../workspace-ui";
 export function ConnectedOverview() {
   const data = useDemo();
   const active = data.payments.filter((p) => !p.voided);
-  const next = data.installments.filter(
-    (i) => i.demo_state === "A vencer" || i.demo_state === "Vencidas",
-  );
+  const next = summarizeInstallments(
+    data.installments,
+    data.allocations,
+    data.payments,
+  )
+    .map((i) => ({ ...i, status: installmentStatus(i.due_on, i.settled) }))
+    .filter((i) => i.status === "A vencer" || i.status === "Vencida");
   return (
     <>
       <div className="metrics">
@@ -17,8 +24,16 @@ export function ConnectedOverview() {
         />
         <Metric
           label="Pagos activos"
-          value={money(active.reduce((sum, p) => sum + p.amount, 0))}
-          detail="Suma de registros sin anular"
+          value={money(
+            active
+              .filter(
+                (p) =>
+                  data.contracts.find((c) => c.id === p.contract)?.currency ===
+                  "ARS",
+              )
+              .reduce((sum, p) => sum + p.amount, 0),
+          )}
+          detail="Pagos ARS sin anular; sin mezclar monedas"
         />
         <Metric
           label="Contratos"
@@ -34,7 +49,8 @@ export function ConnectedOverview() {
       <div className="dashboard-grid">
         <Panel title="Cuotas con estado de seguimiento">
           <p className="muted">
-            Estados demo explícitos, sin clasificación automática.
+            Aviso desde cinco días antes del vencimiento, incluido el día de
+            vencimiento.
           </p>
           <div className="table-scroll">
             <table>
@@ -60,12 +76,22 @@ export function ConnectedOverview() {
                       }
                     </td>
                     <td>{i.number}</td>
-                    <td>{money(i.amount)}</td>
+                    <td>
+                      {money(
+                        i.amount,
+                        data.contracts.find(
+                          (c) =>
+                            c.id ===
+                            data.plans.find((p) => p.id === i.plan_id)
+                              ?.contract_id,
+                        )?.currency ?? "ARS",
+                      )}
+                    </td>
                     <td>
                       <Badge
                         tone={i.demo_state === "Vencidas" ? "red" : "amber"}
                       >
-                        {i.demo_state}
+                        {i.status}
                       </Badge>
                     </td>
                   </tr>
@@ -101,6 +127,7 @@ export function ConnectedContracts() {
   const contract = data.contracts.find((c) => c.id === selected);
   return (
     <>
+      <ContractForm />
       <Panel title="Contratos y planes persistentes">
         <div className="table-scroll">
           <table>
@@ -135,7 +162,7 @@ export function ConnectedContracts() {
                       .map((l) => l.lot_id)
                       .join(", ")}
                   </td>
-                  <td>{money(c.total)}</td>
+                  <td>{money(c.total, c.currency)}</td>
                   <td>
                     <button
                       className="table-action"
@@ -160,11 +187,11 @@ export function ConnectedContracts() {
             </div>
             <div>
               <dt>Total del escenario</dt>
-              <dd>{money(contract.total)}</dd>
+              <dd>{money(contract.total, contract.currency)}</dd>
             </div>
             <div>
               <dt>Anticipo</dt>
-              <dd>{money(contract.deposit)}</dd>
+              <dd>{money(contract.deposit, contract.currency)}</dd>
             </div>
           </dl>
           {data.plans
@@ -245,14 +272,21 @@ export function ConnectedLots() {
   );
 }
 export function ConnectedReports() {
-  const { installments, plans, contracts } = useDemo();
+  const data = useDemo();
+  const rows = summarizeInstallments(
+    data.installments,
+    data.allocations,
+    data.payments,
+  )
+    .map((i) => ({ ...i, status: installmentStatus(i.due_on, i.settled) }))
+    .sort((a, b) => a.due_on.localeCompare(b.due_on));
   return (
     <>
       <p className="demo-callout">
-        Estados explícitos cargados en el escenario demo. No son clasificaciones
-        calculadas de mora ni criterios financieros productivos.
+        A vencer: desde cinco días antes hasta el día del vencimiento. Vencida:
+        desde el día siguiente. Sin intereses adicionales ni recargos.
       </p>
-      <Panel title="Estados de cuotas registrados">
+      <Panel title="Estado de cada cuota">
         <div className="table-scroll">
           <table>
             <thead>
@@ -260,40 +294,41 @@ export function ConnectedReports() {
                 <th>Contrato</th>
                 <th>Cuota</th>
                 <th>Vencimiento</th>
-                <th>Estado demo</th>
+                <th>Estado</th>
               </tr>
             </thead>
             <tbody>
-              {installments
-                .filter((i) => i.demo_state !== "Pendiente")
-                .map((i) => (
-                  <tr key={i.id}>
-                    <td>
-                      {
-                        contracts.find(
-                          (c) =>
-                            c.id ===
-                            plans.find((p) => p.id === i.plan_id)?.contract_id,
-                        )?.reference
+              {rows.map((i) => (
+                <tr key={i.id}>
+                  <td>
+                    {
+                      data.contracts.find(
+                        (c) =>
+                          c.id ===
+                          data.plans.find((p) => p.id === i.plan_id)
+                            ?.contract_id,
+                      )?.reference
+                    }
+                  </td>
+                  <td>{i.number}</td>
+                  <td>{i.due_on}</td>
+                  <td>
+                    <Badge
+                      tone={
+                        i.status === "Vencida"
+                          ? "red"
+                          : i.status === "A vencer"
+                            ? "amber"
+                            : i.status === "Pagada"
+                              ? "green"
+                              : "neutral"
                       }
-                    </td>
-                    <td>{i.number}</td>
-                    <td>{i.due_on}</td>
-                    <td>
-                      <Badge
-                        tone={
-                          i.demo_state === "Vencidas"
-                            ? "red"
-                            : i.demo_state === "A vencer"
-                              ? "amber"
-                              : "green"
-                        }
-                      >
-                        {i.demo_state}
-                      </Badge>
-                    </td>
-                  </tr>
-                ))}
+                    >
+                      {i.status}
+                    </Badge>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

@@ -19,7 +19,10 @@
     "test:connected-ui": "playwright test --config playwright.connected.config.ts",
     "types:generate": "node scripts/generate-types.mjs",
     "test:live-browser": "node --env-file=.env.integration.local node_modules/@playwright/test/cli.js test --config playwright.integration.config.ts",
-    "local:start": "node scripts/start-local.mjs"
+    "local:start": "node scripts/start-local.mjs",
+    "seed:ars": "node --env-file=.env.integration.local scripts/initialize-ars-demo.mjs",
+    "n8n:configure": "node --env-file=.env.integration.local scripts/configure-n8n-postgres.mjs",
+    "n8n:verify": "node scripts/verify-n8n-postgres.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.0",

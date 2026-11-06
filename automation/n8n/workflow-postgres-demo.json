@@ -1,0 +1,414 @@
+{
+  "name": "Crook — PostgreSQL local a XLSX (DEMO)",
+  "active": false,
+  "nodes": [
+    {
+      "id": "manual",
+      "name": "Ejecución manual",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "schedule",
+      "name": "Programación PENDIENTE",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        200
+      ],
+      "disabled": true,
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "config",
+      "name": "Configuración",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "jsCode": "return [{json:{source:'database',approved:true,upload:false,folderId:'',spreadsheetId:'19UjP3p6us3ve0ETFCxxCWWEq_4SWLFi0pbN-Po-jWTo',sheetName:'Hoja 1'}}];"
+      }
+    },
+    {
+      "id": "source",
+      "name": "Origen PostgreSQL",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.source }}",
+              "rightValue": "database",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "guard",
+      "name": "Validar aprobación",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        -120
+      ],
+      "parameters": {
+        "jsCode": "if (!$json.approved) throw new Error('Falta validar columnas y permisos'); return $input.all();"
+      }
+    },
+    {
+      "id": "postgres",
+      "name": "Consulta de solo lectura",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        880,
+        -120
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select usuario, cuota_pagada, fecha, monto_pagado from crook_export.paid_installments order by usuario, fecha, cuota_pagada",
+        "options": {}
+      },
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "postgres": {
+          "id": "crook-demo-postgres-readonly",
+          "name": "Crook local PostgreSQL solo lectura"
+        }
+      }
+    },
+    {
+      "id": "fixture",
+      "name": "Filas ficticias",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        120
+      ],
+      "parameters": {
+        "jsCode": "return [{\"json\":{\"usuario\":\"lucia@example.com\",\"cuota_pagada\":1,\"fecha\":\"2026-03-10\",\"monto_pagado\":687500}},{\"json\":{\"usuario\":\"lucia@example.com\",\"cuota_pagada\":2,\"fecha\":\"2026-04-10\",\"monto_pagado\":687500}}];"
+      }
+    },
+    {
+      "id": "xlsx",
+      "name": "Generar XLSX",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1100,
+        0
+      ],
+      "parameters": {
+        "operation": "xlsx",
+        "binaryPropertyName": "data",
+        "options": {
+          "fileName": "crook-demo.xlsx",
+          "sheetName": "Datos",
+          "headerRow": true
+        }
+      }
+    },
+    {
+      "id": "target",
+      "name": "Destino Drive habilitado",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1320,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Configuración').first().json.upload }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "folder",
+      "name": "Validar carpeta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        -100
+      ],
+      "parameters": {
+        "jsCode": "if (!$('Configuración').first().json.folderId) throw new Error('Carpeta privada pendiente'); return $input.all();"
+      }
+    },
+    {
+      "id": "drive",
+      "name": "Subir a Drive privado",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1760,
+        -100
+      ],
+      "parameters": {
+        "resource": "file",
+        "operation": "upload",
+        "inputDataFieldName": "data",
+        "name": "={{ \"crook-demo-\" + $execution.id + \".xlsx\" }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Configuración').first().json.folderId }}"
+        },
+        "options": {}
+      },
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "verify",
+      "name": "Verificar recepción",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1980,
+        -100
+      ],
+      "parameters": {
+        "jsCode": "if (!$json.id) throw new Error('Drive no devolvió ID de archivo'); return [{json:{execution:$execution.id,status:'uploaded-id-received',fileId:$json.id,privacy:'must-be-verified-separately'}}];"
+      }
+    },
+    {
+      "id": "local",
+      "name": "Resultado manual binario",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        120
+      ],
+      "parameters": {
+        "jsCode": "if (!$input.first().binary?.data) throw new Error('No se generó XLSX'); return $input.all();"
+      }
+    },
+    {
+      "id": "normalize",
+      "name": "Normalizar cuatro columnas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        0
+      ],
+      "parameters": {
+        "jsCode": "return $input.all().map(item=>{const row=item.json;const cuota=Number(row.cuota_pagada),monto=Number(row.monto_pagado),fecha=String(row.fecha).slice(0,10);if(typeof row.usuario!=='string'||!Number.isSafeInteger(cuota)||cuota<=0||!Number.isFinite(monto)||monto<=0||!/^\\d{4}-\\d{2}-\\d{2}$/.test(fecha))throw new Error('Invalid export data types');return {json:{usuario:row.usuario,cuota_pagada:cuota,fecha,monto_pagado:monto}};});"
+      }
+    }
+  ],
+  "connections": {
+    "Ejecución manual": {
+      "main": [
+        [
+          {
+            "node": "Configuración",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Programación PENDIENTE": {
+      "main": [
+        [
+          {
+            "node": "Configuración",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuración": {
+      "main": [
+        [
+          {
+            "node": "Origen PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Origen PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Validar aprobación",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Filas ficticias",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar aprobación": {
+      "main": [
+        [
+          {
+            "node": "Consulta de solo lectura",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consulta de solo lectura": {
+      "main": [
+        [
+          {
+            "node": "Normalizar cuatro columnas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filas ficticias": {
+      "main": [
+        [
+          {
+            "node": "Normalizar cuatro columnas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generar XLSX": {
+      "main": [
+        [
+          {
+            "node": "Destino Drive habilitado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Destino Drive habilitado": {
+      "main": [
+        [
+          {
+            "node": "Validar carpeta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Resultado manual binario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar carpeta": {
+      "main": [
+        [
+          {
+            "node": "Subir a Drive privado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Subir a Drive privado": {
+      "main": [
+        [
+          {
+            "node": "Verificar recepción",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar cuatro columnas": {
+      "main": [
+        [
+          {
+            "node": "Generar XLSX",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Argentina/Buenos_Aires"
+  },
+  "id": "crook-demo-postgres-export"
+}

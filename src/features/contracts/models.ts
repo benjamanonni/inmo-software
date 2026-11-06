@@ -7,7 +7,7 @@ export const clientSchema = z.object({
 });
 export const accountSchema = z.object({
   id: z.uuid(),
-  role: z.enum(["admin", "buyer"]),
+  role: z.enum(["super_admin", "admin", "buyer"]),
   enabled: z.boolean(),
 });
 export const linkSchema = z.object({ account_id: z.uuid(), client_id: id });
@@ -15,7 +15,10 @@ export const contractSchema = z.object({
   id,
   reference: z.string(),
   signed_on: z.string(),
-  currency: z.literal("USD"),
+  currency: z.enum(["ARS", "USD"]),
+  price: z.number().nullable().optional(),
+  interest_percent: z.number().optional(),
+  rule_code: z.string().optional(),
   total: z.number().positive(),
   deposit: z.number().nonnegative(),
   demo_scenario: z.literal(true),

@@ -58,6 +58,8 @@ async function setup(path) {
     "202611050002_payment_rpc.sql",
     "202611050003_storage.sql",
     "202611050004_account_provision.sql",
+"202611050005_confirmed_demo_rules.sql",
+"202611060006_ars_export_projection.sql",
   ])
     await db.exec(
       await readFile(
@@ -71,7 +73,7 @@ async function setup(path) {
   for (const id of Object.values(actor))
     await db.query(`insert into auth.users(id) values($1);`, [id]);
   await db.exec(`insert into public.accounts values('${actor.admin}','admin',true),('${actor.a}','buyer',true),('${actor.b}','buyer',true),('${actor.disabled}','buyer',false);
- insert into public.account_clients values('${actor.a}',1),('${actor.b}',2),('${actor.disabled}',1);`);
+ insert into public.account_clients values('${actor.a}',1),('${actor.b}',2),('${actor.disabled}',3);`);
   return db;
 }
 async function as(db, who, operation) {
@@ -204,10 +206,10 @@ test("SQL PostgreSQL/WASM: migrations, RLS, immutable history, idempotency and p
     );
     const request = "10000000-0000-0000-0000-000000000001";
     await t.test(
-      "admin writes partial/multiple allocations atomically, retry is idempotent",
+      "admin writes single installment allocation atomically, retry is idempotent",
       async () => {
         await as(db, "admin", async () => {
-          const sql = `select public.register_payment(1,500,'2026-11-05','Transferencia','[{"installment_id":9,"amount":200},{"installment_id":10,"amount":300}]','${request}') as id`;
+          const sql = `select public.register_payment(1,500,'2026-11-05','Transferencia','[{"installment_id":9,"amount":500}]','${request}') as id`;
           payment = (await db.query(sql)).rows[0].id;
           assert.equal((await db.query(sql)).rows[0].id, payment);
           await assert.rejects(

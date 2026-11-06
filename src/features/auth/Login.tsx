@@ -81,7 +81,7 @@ export function Login({ reset = false }: { reset?: boolean }) {
                   );
                   return;
                 }
-                navigate(parsed.data.role === "admin" ? "/admin" : "/cliente");
+                navigate(parsed.data.role === "buyer" ? "/cliente" : "/admin");
               }
             } catch (error) {
               setMessage(errorMessage(error));

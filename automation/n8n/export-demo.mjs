@@ -3,20 +3,16 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 export const fixtureRows = [
   {
-    scenario: "CROOK_FICTITIOUS",
-    contract: "CR-2026-001",
-    installment: 9,
-    due_on: "2026-11-10",
-    amount: 500,
-    currency: "USD",
+    usuario: "lucia@example.com",
+    cuota_pagada: 1,
+    fecha: "2026-03-10",
+    monto_pagado: 687500,
   },
   {
-    scenario: "CROOK_FICTITIOUS",
-    contract: "CR-2026-002",
-    installment: 6,
-    due_on: "2026-10-20",
-    amount: 500,
-    currency: "USD",
+    usuario: "lucia@example.com",
+    cuota_pagada: 2,
+    fecha: "2026-04-10",
+    monto_pagado: 687500,
   },
 ];
 export async function generateDemoXlsx(path) {
@@ -33,7 +29,7 @@ export async function generateDemoXlsx(path) {
   await verify.xlsx.readFile(path);
   if (
     verify.worksheets[0].rowCount !== 3 ||
-    verify.worksheets[0].getCell("E2").value !== 500
+    verify.worksheets[0].getCell("D2").value !== 687500
   )
     throw new Error("XLSX verification failed");
   return {

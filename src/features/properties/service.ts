@@ -100,13 +100,11 @@ export async function addPhoto(property: string, file: File) {
     .from("property-photos")
     .upload(path, file, { upsert: false, contentType: file.type });
   if (upload.error) throw upload.error;
-  const { error } = await db
-    .from("property_photos")
-    .insert({
-      property_id: property,
-      object_path: path,
-      alt: "Fotografía de propiedad cargada por administración",
-    });
+  const { error } = await db.from("property_photos").insert({
+    property_id: property,
+    object_path: path,
+    alt: "Fotografía de propiedad cargada por administración",
+  });
   if (error)
     throw new Error(
       "Archivo cargado sin metadatos asociados. Revisá el objeto huérfano antes de reintentar.",

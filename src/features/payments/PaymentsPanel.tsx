@@ -48,6 +48,19 @@ function ReceiptFile({ path, mime }: { path: string; mime: string }) {
 }
 export function PaymentsPanel({ admin = false }: { admin?: boolean }) {
   const data = useDemo();
+  const [chosenContract, setChosenContract] = useState(
+    data.contracts.find((c) => c.currency === "ARS")?.id ??
+      data.contracts[0]?.id ??
+      0,
+  );
+  const chosenPlans = data.plans.filter(
+    (p) => p.contract_id === chosenContract,
+  );
+  const chosenCurrency =
+    data.contracts.find((c) => c.id === chosenContract)?.currency ?? "ARS";
+  const chosenAmount =
+    data.installments.find((i) => i.plan_id === chosenPlans[0]?.id)?.amount ??
+    687500;
   const [adding, setAdding] = useState(false);
   const [history, setHistory] = useState(false);
   const [receipt, setReceipt] = useState<number | null>(null);
@@ -146,7 +159,14 @@ export function PaymentsPanel({ admin = false }: { admin?: boolean }) {
                     </td>
                   )}
                   <td>{p.date.split("-").reverse().join("/")}</td>
-                  <td>{money(p.amount)}</td>
+                  <td>
+                    {money(
+                      p.amount,
+                      data.contracts.find(
+                        (c) => c.id === (p.contract ?? p.client),
+                      )?.currency ?? "ARS",
+                    )}
+                  </td>
                   <td>
                     <Badge tone={p.voided ? "red" : "green"}>
                       {p.voided ? "Anulado" : "Registrado"}
@@ -244,7 +264,11 @@ export function PaymentsPanel({ admin = false }: { admin?: boolean }) {
           >
             <label>
               Contrato
-              <select name="contract">
+              <select
+                name="contract"
+                value={chosenContract}
+                onChange={(e) => setChosenContract(Number(e.target.value))}
+              >
                 {data.contracts.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.reference} ·{" "}
@@ -264,8 +288,8 @@ export function PaymentsPanel({ admin = false }: { admin?: boolean }) {
             </label>
             <label>
               Plan de financiación
-              <select name="plan">
-                {data.plans.map((plan) => (
+              <select name="plan" key={chosenContract}>
+                {chosenPlans.map((plan) => (
                   <option value={plan.id} key={plan.id}>
                     {
                       data.contracts.find((c) => c.id === plan.contract_id)
@@ -287,32 +311,18 @@ export function PaymentsPanel({ admin = false }: { admin?: boolean }) {
               />
             </label>
             <label>
-              Importe imputado (USD)
+              Importe imputado ({chosenCurrency})
               <input
                 name="amount"
                 type="number"
                 min="0.01"
                 step="0.01"
-                defaultValue="500"
+                key={chosenContract}
+                defaultValue={chosenAmount}
                 required
               />
             </label>
-            <details>
-              <summary>Imputar también a otra cuota (opcional)</summary>
-              <label>
-                Otra cuota
-                <input name="second" type="number" min="1" />
-              </label>
-              <label>
-                Importe de la segunda imputación
-                <input
-                  name="secondAmount"
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                />
-              </label>
-            </details>
+
             <label>
               Fecha del pago
               <input
@@ -399,7 +409,16 @@ export function PaymentsPanel({ admin = false }: { admin?: boolean }) {
                 </div>
                 <div>
                   <dt>Importe</dt>
-                  <dd>{money(receiptPayment.amount)}</dd>
+                  <dd>
+                    {money(
+                      receiptPayment.amount,
+                      data.contracts.find(
+                        (c) =>
+                          c.id ===
+                          (receiptPayment.contract ?? receiptPayment.client),
+                      )?.currency ?? "ARS",
+                    )}
+                  </dd>
                 </div>
                 <div>
                   <dt>Estado</dt>
