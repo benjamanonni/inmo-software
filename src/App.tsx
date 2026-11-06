@@ -2,14 +2,18 @@ import { useEffect } from "react";
 import { Link, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { Footer, Header } from "./components";
 import { Catalog, Detail, Home } from "./pages";
-import { properties } from "./properties";
+import { AuthProvider, Protected } from "./features/auth/AuthProvider";
+import { Login } from "./features/auth/Login";
+import { demoMode } from "./integrations/supabase/client";
+import { DataStatus } from "./shared/DataStatus";
 import { DemoProvider, useDemo } from "./demo-data";
 import { Access, Workspace } from "./workspace";
 
 function PropertyRoute() {
   const { id } = useParams();
+  const { published, properties, loading, error } = useDemo();
+  if (loading || error) return <DataStatus />;
   const property = properties.find((item) => item.id === id);
-  const { published } = useDemo();
   return property && published[properties.indexOf(property)] ? (
     <Detail property={property} />
   ) : (
@@ -33,9 +37,11 @@ function NotFound() {
 }
 export function App() {
   return (
-    <DemoProvider>
-      <AppRoutes />
-    </DemoProvider>
+    <AuthProvider>
+      <DemoProvider>
+        <AppRoutes />
+      </DemoProvider>
+    </AuthProvider>
   );
 }
 function AppRoutes() {
@@ -43,7 +49,8 @@ function AppRoutes() {
   const workspace =
     pathname.startsWith("/admin") ||
     pathname.startsWith("/cliente") ||
-    pathname === "/acceso";
+    pathname === "/acceso" ||
+    pathname === "/recuperar";
   useEffect(() => {
     document.title = `${pathname === "/" ? "Crook" : pathname === "/propiedades" ? "Desarrollos — Crook" : "Detalle — Crook"} · Demo`;
     if (hash) document.getElementById(hash.slice(1))?.scrollIntoView();
@@ -63,9 +70,24 @@ function AppRoutes() {
           <Route path="/" element={<Home />} />
           <Route path="/propiedades" element={<Catalog />} />
           <Route path="/propiedades/:id" element={<PropertyRoute />} />
-          <Route path="/acceso" element={<Access />} />
-          <Route path="/admin/*" element={<Workspace admin />} />
-          <Route path="/cliente/*" element={<Workspace admin={false} />} />
+          <Route path="/acceso" element={demoMode ? <Access /> : <Login />} />
+          <Route path="/recuperar" element={<Login reset />} />
+          <Route
+            path="/admin/*"
+            element={
+              <Protected admin>
+                <Workspace admin />
+              </Protected>
+            }
+          />
+          <Route
+            path="/cliente/*"
+            element={
+              <Protected admin={false}>
+                <Workspace admin={false} />
+              </Protected>
+            }
+          />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

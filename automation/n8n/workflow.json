@@ -1,0 +1,344 @@
+{
+  "name": "Crook — exportación tabular configurable (INACTIVA)",
+  "active": false,
+  "nodes": [
+    {
+      "id": "manual",
+      "name": "Ejecución manual",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "parameters": {}
+    },
+    {
+      "id": "schedule",
+      "name": "Programación PENDIENTE",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 200],
+      "disabled": true,
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "config",
+      "name": "Configuración",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 0],
+      "parameters": {
+        "jsCode": "return [{json:{source:'demo',approved:false,upload:false,folderId:''}}];"
+      }
+    },
+    {
+      "id": "source",
+      "name": "Origen PostgreSQL",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [440, 0],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.source }}",
+              "rightValue": "database",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "guard",
+      "name": "Validar aprobación",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, -120],
+      "parameters": {
+        "jsCode": "if (!$json.approved) throw new Error('Falta validar columnas y permisos'); return $input.all();"
+      }
+    },
+    {
+      "id": "postgres",
+      "name": "Consulta de solo lectura",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [880, -120],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select contract, installment, due_on, amount, currency from crook_export.installment_demo order by contract, installment",
+        "options": {}
+      },
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "fixture",
+      "name": "Filas ficticias",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, 120],
+      "parameters": {
+        "jsCode": "return [{json:{scenario:'CROOK_FICTITIOUS',contract:'CR-2026-001',installment:9,due_on:'2026-11-10',amount:500,currency:'USD'}},{json:{scenario:'CROOK_FICTITIOUS',contract:'CR-2026-002',installment:6,due_on:'2026-10-20',amount:500,currency:'USD'}}];"
+      }
+    },
+    {
+      "id": "xlsx",
+      "name": "Generar XLSX",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [1100, 0],
+      "parameters": {
+        "operation": "xlsx",
+        "binaryPropertyName": "data",
+        "options": {
+          "fileName": "crook-demo.xlsx",
+          "sheetName": "Datos",
+          "headerRow": true
+        }
+      }
+    },
+    {
+      "id": "target",
+      "name": "Destino Drive habilitado",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1320, 0],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Configuración').first().json.upload }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "folder",
+      "name": "Validar carpeta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1540, -100],
+      "parameters": {
+        "jsCode": "if (!$('Configuración').first().json.folderId) throw new Error('Carpeta privada pendiente'); return $input.all();"
+      }
+    },
+    {
+      "id": "drive",
+      "name": "Subir a Drive privado",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [1760, -100],
+      "parameters": {
+        "resource": "file",
+        "operation": "upload",
+        "inputDataFieldName": "data",
+        "name": "={{ \"crook-demo-\" + $execution.id + \".xlsx\" }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Configuración').first().json.folderId }}"
+        },
+        "options": {}
+      },
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "verify",
+      "name": "Verificar recepción",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1980, -100],
+      "parameters": {
+        "jsCode": "if (!$json.id) throw new Error('Drive no devolvió ID de archivo'); return [{json:{execution:$execution.id,status:'uploaded-id-received',fileId:$json.id,privacy:'must-be-verified-separately'}}];"
+      }
+    },
+    {
+      "id": "local",
+      "name": "Resultado manual binario",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1540, 120],
+      "parameters": {
+        "jsCode": "if (!$input.first().binary?.data) throw new Error('No se generó XLSX'); return $input.all();"
+      }
+    }
+  ],
+  "connections": {
+    "Ejecución manual": {
+      "main": [
+        [
+          {
+            "node": "Configuración",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Programación PENDIENTE": {
+      "main": [
+        [
+          {
+            "node": "Configuración",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuración": {
+      "main": [
+        [
+          {
+            "node": "Origen PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Origen PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Validar aprobación",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Filas ficticias",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar aprobación": {
+      "main": [
+        [
+          {
+            "node": "Consulta de solo lectura",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consulta de solo lectura": {
+      "main": [
+        [
+          {
+            "node": "Generar XLSX",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filas ficticias": {
+      "main": [
+        [
+          {
+            "node": "Generar XLSX",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generar XLSX": {
+      "main": [
+        [
+          {
+            "node": "Destino Drive habilitado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Destino Drive habilitado": {
+      "main": [
+        [
+          {
+            "node": "Validar carpeta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Resultado manual binario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar carpeta": {
+      "main": [
+        [
+          {
+            "node": "Subir a Drive privado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Subir a Drive privado": {
+      "main": [
+        [
+          {
+            "node": "Verificar recepción",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Argentina/Buenos_Aires"
+  }
+}
