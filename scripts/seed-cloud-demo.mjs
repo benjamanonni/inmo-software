@@ -58,7 +58,11 @@ const people = [
   { id: 3, name: "Carolina Ríos (demo)", email: "carolina@crook.example" },
 ];
 if (!resuming) {
-  check(await owner.from("clients").insert(people));
+  check(
+    await owner
+      .from("clients")
+      .insert(people.map(({ name, email }) => ({ name, email }))),
+  );
   check(
     await owner.from("properties").insert([
       {
@@ -149,13 +153,11 @@ if (!resuming) {
       `\n${entry.role} | ${entry.email} | ${entry.enabled ? "habilitada" : "deshabilitada"}\nContraseña: ${password}\n`,
     );
     check(
-      await owner
-        .from("accounts")
-        .insert({
-          id: identity.user.id,
-          role: entry.role,
-          enabled: entry.enabled,
-        }),
+      await owner.from("accounts").insert({
+        id: identity.user.id,
+        role: entry.role,
+        enabled: entry.enabled,
+      }),
     );
     if (entry.client)
       check(

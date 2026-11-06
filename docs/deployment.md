@@ -1,85 +1,98 @@
-# Ejecución reproducible y Preview
+# Publicación de Crook — 06/11/2026
 
-En este equipo, la instalación e inicialización ya se realizaron. Usar `npm run local:start` para arrancar el sistema conectado y consultar [local-ready.md](local-ready.md) para accesos y evidencia. Los pasos siguientes sirven para reproducir la instalación en un entorno nuevo.
+## Entorno realmente desplegado
 
-## 1. Interfaz visual sin servicios
+| Recurso | Identidad verificada |
+| --- | --- |
+| Web pública | https://crook-demo-online-preview.vercel.app |
+| Entorno Vercel | Preview, cuenta Hobby `benjamanonni5-1095`, proyecto `crook-demo-online` |
+| Panel Vercel | https://vercel.com/benjamanonni5-1095/crook-demo-online |
+| Backend exclusivo | Supabase FREE `crook-demo-online`, referencia `hrwgdwductfrgzlivvoo` |
+| Panel Supabase | https://supabase.com/dashboard/project/hrwgdwductfrgzlivvoo |
+| Rama de trabajo | `codex/despliegue-demo-online`, creada desde `origin/main` en `9b3ea4f` |
 
-PowerShell, en `C:\inmobiliaria demo`:
+Vercel exige que el primer despliegue de un proyecto se clasifique como Production. El propietario autorizó expresamente inicializar una página vacía sin aplicación, sin Supabase, sin datos y con `--skip-domain`. Crook se publicó después en **Preview**. El alias anterior apunta a ese Preview; no se publicó la aplicación en Production. No se afectó el proyecto Supabase preexistente SanLuisTran.
 
-```powershell
-npm ci
-npm run dev
-```
+Se quitaron las restricciones de login de Vercel del proyecto exclusivo de demo para permitir visitar el sitio desde cualquier navegador. Las pantallas privadas continúan protegidas por Supabase Auth, roles y RLS; no hay credenciales públicas.
 
-Abrir http://127.0.0.1:5173. El script utiliza explícitamente `.env.demo`; fixtures temporales, sin Auth. Si el puerto está ocupado, detener el servidor anterior con Ctrl+C. No confundir este modo con una integración de base de datos.
+## Configuración y secretos
 
-## 2. Supabase local aislado
+En **Vercel → crook-demo-online → Settings → Environment Variables**, exclusivamente en **Preview**:
 
-Requisito Windows: Docker Desktop o Podman ejecutándose y accesible desde terminal. CLI 3.0.0 está fijada en dependencias de desarrollo.
+- `VITE_SUPABASE_URL=https://hrwgdwductfrgzlivvoo.supabase.co`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`: clave pública del mismo proyecto, consultable en Supabase → Settings → API Keys.
+- `VITE_ENABLE_DEMO=false`
 
-```powershell
-npx supabase start
-```
+No copiar claves administrativas ni contraseñas a variables `VITE_`. La validación del build rechaza Production, localhost, fixtures habilitados, claves administrativas, JWT anon de otro proyecto y variables públicas desconocidas. Se admiten por nombre los metadatos públicos que inyecta Vercel. `.vercelignore` excluye todos los `.env*`, `artifacts/`, datos SQL y archivos de pruebas del upload. El código de integración `src/integrations/supabase` sí se incluye.
 
-Config, migraciones y seed son para `crook-demo`, no producción. El inicio de un stack nuevo aplica las migraciones y seed. Para aplicar incrementos sobre el stack local existente se puede usar `npx supabase migration up --local`; no utilizar un reset contra datos que deban conservarse. No usar db push contra un proyecto cloud sin revisar expresamente su referencia y destino.
-
-```powershell
-Copy-Item .env.example .env.local
-Copy-Item .env.integration.example .env.integration.local
-```
-
-Editar los archivos localmente con las claves del stack. `.env.local` solo admite URL y clave pública/publishable para Vite y `VITE_ENABLE_DEMO=false`. `.env.integration.local` contiene claves de servidor/test y una contraseña aleatoria de al menos 12 caracteres; está ignorado por Git. Las claves administrativas nunca llevan prefijo VITE_.
-
-Opcional para generar automáticamente el archivo privado de pruebas desde el stack local, sin imprimir claves:
+Configuración cloud reproducible, sin secretos: `deployment/supabase/config.toml`. Incluye signup deshabilitado, contraseña mínima de 12 caracteres, Site URL y redirects exactos `/acceso` y `/recuperar`. Revisar `config diff` antes de ejecutar `config push`; los valores no declarados se conservan.
 
 ```powershell
-node scripts/local-test-env.mjs
-npm run seed:auth
-npm run test:live
-npm run types:generate
-npm run dev:live
+npx supabase config diff --remote=hrwgdwductfrgzlivvoo --workdir deployment
+npx supabase config push --remote=hrwgdwductfrgzlivvoo --workdir deployment --yes
 ```
 
-Seed Auth admite solamente URLs localhost/127.0.0.1 y exige aceptación de entorno local mediante CROOK_SEED_ALLOW_LOCAL. Inicializa admin@crook.example y cuatro compradores ficticios (lucia@example.com, martin@example.com, carolina@example.com, diego@example.com); Carolina queda deshabilitada. La contraseña es CROOK_DEMO_PASSWORD del archivo privado, no se imprime. No se sobrescriben contraseñas de identidades existentes. Inicializa ocho pagos por RPC autenticado y con claves idempotentes.
+Edge Function `manage-buyer` desplegada con verificación de JWT habilitada. `APP_ORIGIN` es exactamente `https://crook-demo-online-preview.vercel.app`. La función verifica identidad y rol habilitado antes de utilizar su clave de servidor. Si cambia el alias público, actualizar Auth y `APP_ORIGIN`; las URLs inmutables de cada despliegue no sustituyen automáticamente el alias permitido.
 
-Para la operación segura de altas:
+## Migraciones y datos
+
+Se comprobó por API la identidad del proyecto, estado saludable, cero tablas públicas y cero usuarios antes de inicializarlo. Se aplicaron las seis migraciones en orden, con `db push --remote=... --skip-vault`, primero en dry-run. No se ejecutó `db reset` cloud ni se copió la base local.
+
+Las 15 tablas públicas tienen RLS habilitada; los buckets `receipts` y `property-photos` son privados. Se cargaron dos desarrollos y tres contratos nuevos ARS, sin anticipo, 10% total fijo, 48 cuotas y ocho pagos activos iniciales para Lucía. Las pruebas agregan clientes ficticios y movimientos anulados, conservando su historial.
+
+`scripts/seed-cloud-demo.mjs` exige referencia explícita coincidente y proyecto vacío; genera una contraseña aleatoria distinta para cada identidad, sin reutilizar la contraseña local. Un alta interrumpida no sobrescribe identidades existentes. La opción de reanudación exige exactamente las cuatro identidades iniciales y el archivo privado del mismo proyecto. No volver a ejecutar bootstrap sobre la demo ya utilizada.
+
+Accesos iniciales: administrador `admin@crook.example` (rol super_admin), compradores `lucia@crook.example`, `martin@crook.example` y `carolina@crook.example` (deshabilitada). Contraseñas en `artifacts/ACCESOS-ONLINE.txt`, privado. Para dar acceso a otra persona ficticia, crear un cliente y su cuenta desde administración. El correo de recuperación requiere SMTP autorizado; la cuenta creada por Edge no envía un correo ni revela una contraseña.
+
+## Pruebas ejecutadas y límites
+
+| Entorno | Verificación |
+| --- | --- |
+| Local | npm ci, lint, typecheck, build, 5 unitarias, 10 SQL, 7 E2E visuales, 1 configuración sin backend, 3 HTTP Supabase real y 2 navegador con Auth local aprobadas |
+| Supabase Cloud real | Login de cuatro cuentas, aislamiento A/B, denegación anónima y deshabilitada, registro público desactivado, Edge comprador 403, alta administrativa y duplicado 409 |
+| Supabase Cloud real | Pago de una cuota, idempotencia, anulación, importe original e historial conservados, borrado rechazado; comprobante privado por URL firmada, acceso ajeno rechazado; despublicación/publicación persistente |
+| URL pública | Catálogo sin precios, fotos, rutas directas y recarga, móvil, login comprador/admin, todas sus vistas, sesión persistente, denegación comprador→admin, logout y cuenta deshabilitada |
+| URL pública | Registro y anulación de pago desde la interfaz, persistencia tras recargar e historial |
+| Bundle público | HTTP 200 sin login Vercel, noindex, backend Cloud correcto; claves administrativas y contraseñas ficticias ausentes; sin localhost:54321 |
+
+La comprobación de la imagen de comprobante usa un PNG mínimo de prueba, sin validez comercial. No se enviaron correos externos ni se declara verificada la recuperación externa. No es una prueba de carga ni una certificación de seguridad. Vite advierte de un chunk de ~631 kB; el build finaliza correctamente.
+
+Para repetir las pruebas explícitas sobre esta demo, con `.env.cloud.local` privado ya configurado:
 
 ```powershell
-npx supabase functions serve manage-buyer
+$env:CROOK_PREVIEW_URL='https://crook-demo-online-preview.vercel.app'
+npm run test:cloud
+npm run test:online
+npm run verify:preview
 ```
 
-La función utiliza SUPABASE_URL, SUPABASE_ANON_KEY y SUPABASE_SERVICE_ROLE_KEY del runtime Edge. Configurar APP_ORIGIN si cambia el origen de frontend. Probar primero con usuarios ficticios: anónimo y comprador deben recibir 401/403; administrador debe vincular una cuenta nueva. El chequeo de tipos de la función no reemplaza esta prueba. Las identidades creadas sin vínculo tras un fallo parcial necesitan reconciliación; no reintentar asociando automáticamente usuarios existentes por email.
+`test:cloud` crea un cliente ficticio nuevo, prueba un pago y lo anula sin borrar historia. `test:online` hace otro registro/anulación desde la interfaz. No ejecutar estas pruebas en una base operativa. Evidencias privadas en `artifacts/cloud-api-verification.json`, `preview-assets-verification.json` y capturas `online-*.png`, fuera de Git. Las suites online no forman parte de la suite visual local ni de CI: no se suben credenciales cloud a GitHub Actions.
 
-Config local: registro público deshabilitado, URLs de recuperación http://127.0.0.1:5173/recuperar; mantener este hostname para la prueba de correo. Mailpit local en puerto 54324; probar recepción solo cuando el stack esté disponible. Configurar SMTP externo/Resend por separado en el entorno de desarrollo, sin enviar a clientes reales.
+## Actualizar, consultar logs y revertir
 
-## 3. Checks
+La CLI de Vercel está autorizada en este equipo. Después de revisar un commit de la rama y completar los checks:
 
 ```powershell
-npm run typecheck
-npm run lint
-npm run build
-npm run test:unit
-npm run test:sql
-npm run test:e2e
-npm run test:connected-ui
-npm audit
-npm run export:demo
+git switch codex/despliegue-demo-online
+git pull --ff-only
+npx vercel deploy --environment preview --yes
+# Sustituir por la URL READY devuelta realmente por Vercel:
+npx vercel alias set https://URL-READY-DEL-NUEVO-PREVIEW.vercel.app crook-demo-online-preview.vercel.app
 ```
 
-Playwright usa Edge en Windows; CI usa Chromium instalado por `npx playwright install --with-deps chromium`. Los puertos de pruebas son 5184/5185, sin reutilizar procesos. El artefacto XLSX se genera en artifacts/, fuera de Git. Los JSON n8n se verifican estructuralmente, pero su ejecución requiere n8n.
+No usar `--prod`. El guard del build también impide publicar Crook en Production. Probar la URL inmutable antes de cambiar el alias y repetir las verificaciones sobre el alias después de cambiarlo. Para volver a una versión anterior, reasignar el mismo alias a su URL Preview READY anterior; no revertir datos ni ejecutar resets. La reversión de frontend no revierte migraciones de base de datos: aplicar correcciones mediante una nueva migración revisada.
 
-## 4. Vercel Preview
+Builds y fallos: Vercel → proyecto → Deployments → despliegue → Build Logs, o `npx vercel inspect URL --logs`. Logs de backend: Supabase → proyecto → Logs / Edge Functions → manage-buyer → Logs. No publicar tokens ni el contenido de archivos privados.
 
-`vercel.json` prepara Vite, dist y rutas SPA. En un proyecto Vercel autorizado, configurar **Preview**, no Production:
+GitHub Actions: revisar los checks de la cabeza del PR, no ejecuciones de commits anteriores. La rama se publica sin tocar `main` ni fusionar automáticamente.
 
-- VITE_SUPABASE_URL del proyecto de desarrollo.
-- VITE_SUPABASE_PUBLISHABLE_KEY pública de ese proyecto.
-- VITE_ENABLE_DEMO=false (el build también exige DEV para cualquier fixture).
+Intento de conexión GitHub→Vercel: rechazado porque falta una **Login Connection** con GitHub en la cuenta Vercel. Para habilitar automatización, el propietario debe ir a Vercel → Account Settings → Authentication / Login Connections → GitHub y vincular su cuenta; después conectar `benjamanonni/inmo-software` en Project Settings → Git. No es necesario para usar o actualizar manualmente este Preview. No habilitar despliegues operativos automáticos; el guard impide usar Production.
 
-Vincular la rama de desarrollo desde el proyecto Vercel o ejecutar `npx vercel` con credenciales ya configuradas; no usar `--prod`. Esta guía no acredita una publicación. Antes de ejecutarlo revisar el proyecto y evitar creación de recursos con costo. Agregar el origen Preview exacto a Supabase Auth redirects y APP_ORIGIN de la función; no usar comodines globales innecesarios.
+## Pendientes independientes de la web
 
-Tras desplegar: verificar URL real, recarga directa de /propiedades/:id, login/logout, recuperación con correo autorizado, comprador A/B, cuenta deshabilitada y visor privado. Mantener las cabeceras noindex de la demo. No activar producción ni dominio productivo.
+- Resend/SMTP: autorización del servicio, dominio/remitente verificado y secretos solo en Supabase Auth. Probar con un destinatario real autorizado; aún no se recibió un correo externo de recuperación.
+- n8n: la exportación PostgreSQL local→XLSX fue verificada. No se llama a n8n desde el frontend. Falta configurar un lector de Cloud con permisos limitados y credencial propia en n8n.
+- Google Drive: falta OAuth/Service Account autorizado en n8n y carpeta privada de destino. La conexión Google de Codex no se transfiere a n8n. La hoja identificada no se modificó.
+- Definir si se actualizan filas de Sheets o se guardan XLSX diarios, horario, zona y retención. Programación desactivada; ningún webhook público n8n forma parte de esta demo.
 
-## 5. CI
-
-`.github/workflows/ci.yml` contiene checks y un trabajo independiente de Supabase Docker en Ubuntu. Crea sus claves y contraseña de pruebas dentro del runner sin imprimirlas, inicializa datos ficticios, ejecuta la suite HTTP y detiene servicios. Ese trabajo aún no se ejecutó remotamente: no hubo push. Revisar la primera ejecución y tratar errores de imágenes/runtime o diferencias de Supabase real sin sustituirlos por mocks.
+Fuentes técnicas: [Vercel Preview](https://vercel.com/docs/deployments/environments), [primer despliegue](https://vercel.com/docs/domains/working-with-domains/deploying-and-redirecting), [variables de framework](https://vercel.com/docs/environment-variables/framework-environment-variables), [Supabase: entornos](https://supabase.com/docs/guides/deployment/managing-environments).

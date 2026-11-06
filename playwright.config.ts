@@ -2,7 +2,12 @@ import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: "./tests",
   testMatch: "**/*.spec.ts",
-  testIgnore: ["**/live/**", "**/connected-ui/**", "**/live-browser/**"],
+  testIgnore: [
+    "**/live/**",
+    "**/connected-ui/**",
+    "**/live-browser/**",
+    "**/online/**",
+  ],
   use: {
     baseURL: "http://127.0.0.1:5184",
     browserName: "chromium",
