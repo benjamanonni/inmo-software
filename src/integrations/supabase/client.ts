@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import type { Database } from "./database.generated";
 
 export const demoMode =
   import.meta.env.DEV && import.meta.env.VITE_ENABLE_DEMO === "true";
@@ -6,7 +7,7 @@ const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
 export const supabase =
   url && key
-    ? createClient(url, key, {
+    ? createClient<Database>(url, key, {
         auth: {
           persistSession: true,
           autoRefreshToken: true,

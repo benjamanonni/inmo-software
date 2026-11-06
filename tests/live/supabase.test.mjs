@@ -5,6 +5,38 @@ import { createClient } from "@supabase/supabase-js";
 const url = process.env.SUPABASE_URL,
   key = process.env.SUPABASE_PUBLISHABLE_KEY,
   password = process.env.CROOK_DEMO_PASSWORD;
+test("REAL Edge Function: buyers denied, admin provisions and links a fresh demo identity", async () => {
+  const admin = await login("admin@crook.example"),
+    buyer = await login("lucia@example.com");
+  try {
+    const denied = await buyer.functions.invoke("manage-buyer", {
+      body: { clientId: 1, email: "lucia@example.com" },
+    });
+    assert.equal(denied.error?.context?.status, 403);
+    const email = `buyer-${crypto.randomUUID()}@crook.example`;
+    const inserted = await admin
+      .from("clients")
+      .insert({ name: "Comprador de prueba Edge", email })
+      .select("id")
+      .single();
+    assert.equal(inserted.error, null);
+    const body = { clientId: inserted.data.id, email };
+    const provisioned = await admin.functions.invoke("manage-buyer", { body });
+    assert.equal(provisioned.error, null);
+    assert.equal(provisioned.data.status, "provisioned");
+    const duplicate = await admin.functions.invoke("manage-buyer", { body });
+    assert.equal(duplicate.error?.context?.status, 409);
+    const account = await admin
+      .from("accounts")
+      .select("role,enabled")
+      .eq("id", provisioned.data.userId)
+      .single();
+    assert.equal(account.data.role, "buyer");
+    assert.equal(account.data.enabled, true);
+  } finally {
+    await Promise.all([admin.auth.signOut(), buyer.auth.signOut()]);
+  }
+});
 if (
   !url ||
   !key ||
@@ -53,15 +85,13 @@ test("REAL Supabase: authorization, durable publication, manual payments, privat
       ).error,
     );
     const slug = "test-" + crypto.randomUUID();
-    const created = await admin
-      .from("properties")
-      .insert({
-        id: slug,
-        title: "Propiedad ficticia de integración",
-        description: "Solo pruebas aisladas",
-        operation: "Venta",
-        published: false,
-      });
+    const created = await admin.from("properties").insert({
+      id: slug,
+      title: "Propiedad ficticia de integración",
+      description: "Solo pruebas aisladas",
+      operation: "Venta",
+      published: false,
+    });
     assert.equal(created.error, null);
     assert.equal(
       (await anonymous.from("properties").select("id").eq("id", slug)).data
@@ -111,13 +141,11 @@ test("REAL Supabase: authorization, durable publication, manual payments, privat
     );
     assert.equal(
       (
-        await admin
-          .from("receipts")
-          .insert({
-            payment_id: payment,
-            object_path: path,
-            mime_type: "application/pdf",
-          })
+        await admin.from("receipts").insert({
+          payment_id: payment,
+          object_path: path,
+          mime_type: "application/pdf",
+        })
       ).error,
       null,
     );

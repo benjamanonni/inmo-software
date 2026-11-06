@@ -10,6 +10,7 @@ test-results/
 !.env.integration.example
 .supabase/
 supabase/.temp/
+supabase/.branches/
 artifacts/
 .vercel/
 *.log

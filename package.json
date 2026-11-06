@@ -17,7 +17,9 @@
     "seed:auth": "node --env-file=.env.integration.local scripts/seed-auth.mjs",
     "export:demo": "node automation/n8n/export-demo.mjs",
     "test:connected-ui": "playwright test --config playwright.connected.config.ts",
-    "types:generate": "node scripts/generate-types.mjs"
+    "types:generate": "node scripts/generate-types.mjs",
+    "test:live-browser": "node --env-file=.env.integration.local node_modules/@playwright/test/cli.js test --config playwright.integration.config.ts",
+    "local:start": "node scripts/start-local.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.0",

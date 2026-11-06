@@ -1,5 +1,7 @@
 # Incremento full stack — 05/11/2026
 
+**Actualización posterior:** el bloqueo Docker se resolvió y ya se ejecutaron verificaciones con Supabase y n8n reales. Este informe conserva el punto de control inicial; consultar [local-ready.md](local-ready.md) para el estado actual y los resultados posteriores.
+
 Rama: `codex/full-stack-demo`. Se conservó la identidad visual Crook y el código existente. No hubo escrituras externas, despliegue productivo ni cambios en Confluence. Se contrastaron nuevamente Diccionario EDT v18 y Pendientes v30: las cardinalidades y reglas financieras productivas continúan pendientes.
 
 ## Resultado y cobertura

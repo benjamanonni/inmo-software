@@ -41,6 +41,8 @@ jobs:
       - run: node scripts/local-test-env.mjs
       - run: npm run seed:auth
       - run: npm run test:live
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:live-browser
       - name: Stop isolated services without deleting data
         if: always()
         run: npx supabase stop

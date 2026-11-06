@@ -1,8 +1,12 @@
 import { z } from "zod";
 import { requireSupabase } from "../../integrations/supabase/client";
 import * as model from "./models";
+import type { Database } from "../../integrations/supabase/database.generated";
 
-async function rows<T>(table: string, schema: z.ZodType<T>): Promise<T[]> {
+async function rows<T>(
+  table: keyof Database["public"]["Tables"],
+  schema: z.ZodType<T>,
+): Promise<T[]> {
   const { data, error } = await requireSupabase().from(table).select("*");
   if (error) throw error;
   return schema.array().parse(data);

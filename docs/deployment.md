@@ -1,5 +1,7 @@
 # Ejecución reproducible y Preview
 
+En este equipo, la instalación e inicialización ya se realizaron. Usar `npm run local:start` para arrancar el sistema conectado y consultar [local-ready.md](local-ready.md) para accesos y evidencia. Los pasos siguientes sirven para reproducir la instalación en un entorno nuevo.
+
 ## 1. Interfaz visual sin servicios
 
 PowerShell, en `C:\inmobiliaria demo`:
