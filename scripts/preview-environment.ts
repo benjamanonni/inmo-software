@@ -62,14 +62,17 @@ export function validatePreviewEnvironment(
       "GIT_COMMIT_AUTHOR_LOGIN",
       "GIT_COMMIT_AUTHOR_NAME",
       "GIT_PULL_REQUEST_ID",
+      "OBSERVABILITY_CLIENT_CONFIG",
+      "GIT_PREVIOUS_SHA",
+      "PROJECT_ID",
+      "DEPLOYMENT_ID",
     ].map((name) => `VITE_VERCEL_${name}`),
   ]);
-  if (
-    Object.keys(env).some(
-      (name) => name.startsWith("VITE_") && !allowed.has(name),
-    )
-  )
+  const unexpected = Object.keys(env).filter(
+    (name) => name.startsWith("VITE_") && !allowed.has(name),
+  );
+  if (unexpected.length)
     throw new Error(
-      "Unexpected VITE_ variable: review public configuration before deployment.",
+      `Unexpected public variable names: ${unexpected.join(", ")}. Review before deployment.`,
     );
 }
