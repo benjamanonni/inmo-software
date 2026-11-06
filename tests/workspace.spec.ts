@@ -13,7 +13,7 @@ test("registrar y anular un pago actualiza el comprador y conserva historial", a
   ).toContainText("9 / 48");
   await expect(
     page.locator(".metric").filter({ hasText: "Aportes registrados" }),
-  ).toContainText("10.500");
+  ).toContainText("6.187.500");
   await page.getByRole("link", { name: "Cambiar vista demo" }).click();
   await page
     .getByRole("navigation", { name: "Administración", exact: true })

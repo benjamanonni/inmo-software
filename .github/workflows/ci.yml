@@ -40,6 +40,7 @@ jobs:
         run: npx supabase start > "$RUNNER_TEMP/crook-supabase-start.log" 2>&1
       - run: node scripts/local-test-env.mjs
       - run: npm run seed:auth
+      - run: npm run seed:ars
       - run: npm run test:live
       - run: npx playwright install --with-deps chromium
       - run: npm run test:live-browser

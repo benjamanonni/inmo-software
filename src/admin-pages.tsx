@@ -114,7 +114,7 @@ function VisualOverview() {
               <small>Horizonte · Lote H-012 · Cuota 09</small>
             </div>
             <div>
-              <strong>{money(500)}</strong>
+              <strong>{money(687500)}</strong>
               <Badge tone="amber">A vencer · 10 nov.</Badge>
             </div>
           </div>
@@ -125,7 +125,7 @@ function VisualOverview() {
               <small>Horizonte · Lote H-018 · Cuota 06</small>
             </div>
             <div>
-              <strong>{money(500)}</strong>
+              <strong>{money(687500)}</strong>
               <Badge tone="red">Vencida · 20 oct.</Badge>
             </div>
           </div>
@@ -301,13 +301,13 @@ function VisualContracts() {
         />
         <Metric
           label="Valor contractual de ejemplo"
-          value={money(30000)}
+          value={money(30000000)}
           detail="Plan utilizado en todas las fichas demo"
         />
         <Metric
           label="Anticipo ilustrativo"
-          value="20%"
-          detail="USD 6.000 · Sin intereses en la simulación"
+          value="0%"
+          detail="Sin anticipo · Interés total fijo del 10%"
         />
       </div>
       <Panel title="Contratos y planes de financiación">
@@ -332,7 +332,7 @@ function VisualContracts() {
                       <small>{c.name}</small>
                     </td>
                     <td>{c.lot}</td>
-                    <td>48 cuotas de {money(500)}</td>
+                    <td>48 cuotas de {money(687500)}</td>
                     <td>
                       <Badge>Vigente</Badge>
                     </td>

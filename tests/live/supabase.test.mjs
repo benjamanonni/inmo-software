@@ -51,6 +51,83 @@ function client() {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }
+test("REAL approved ARS plan generation: no deposit, flat 10%, monthly dates, exact cents and rollback", async () => {
+  const admin = await login("admin@crook.example"),
+    buyer = await login("lucia@example.com");
+  try {
+    const person=await admin.from("clients").insert({name:"Comprador aislado de prueba de planes",email:"plan-"+crypto.randomUUID()+"@crook.example"}).select("id").single();
+    assert.equal(person.error,null);
+    const input = {
+      p_client: person.data.id,
+      p_lot: "H-025",
+      p_reference: "PLAN-TEST-" + crypto.randomUUID(),
+      p_price: 1000.01,
+      p_count: 3,
+      p_first_due: "2027-01-31",
+    };
+    assert.ok((await buyer.rpc("create_demo_contract", input)).error);
+    const created = await admin.rpc("create_demo_contract", input);
+    assert.equal(created.error, null);
+    const contract = await admin
+      .from("contracts")
+      .select("*")
+      .eq("id", created.data)
+      .single();
+    assert.equal(contract.data.currency, "ARS");
+    assert.equal(contract.data.deposit, 0);
+    assert.equal(contract.data.total, 1100.01);
+    assert.equal(contract.data.interest_percent, 10);
+    const plan = await admin
+      .from("plans")
+      .select("id")
+      .eq("contract_id", created.data)
+      .single();
+    const installments = await admin
+      .from("installments")
+      .select("*")
+      .eq("plan_id", plan.data.id)
+      .order("number");
+    assert.deepEqual(
+      installments.data.map((i) => i.due_on),
+      ["2027-01-31", "2027-02-28", "2027-03-31"],
+    );
+    assert.equal(
+      installments.data.reduce((sum, i) => sum + Math.round(i.amount * 100), 0),
+      110001,
+    );
+    const before = await admin.from("contracts").select("id");
+    assert.ok(
+      (
+        await admin.rpc("create_demo_contract", {
+          ...input,
+          p_reference: "INVALID-" + crypto.randomUUID(),
+          p_count: 0,
+        })
+      ).error,
+    );
+    assert.equal(
+      (await admin.from("contracts").select("id")).data.length,
+      before.data.length,
+    );
+    assert.ok(
+      (
+        await admin.rpc("register_payment", {
+          p_contract: created.data,
+          p_amount: 10,
+          p_paid_on: "2027-01-31",
+          p_method: "Efectivo",
+          p_allocations: [
+            { installment_id: installments.data[0].id, amount: 5 },
+            { installment_id: installments.data[1].id, amount: 5 },
+          ],
+          p_request: crypto.randomUUID(),
+        })
+      ).error,
+    );
+  } finally {
+    await Promise.all([admin.auth.signOut(), buyer.auth.signOut()]);
+  }
+});
 async function login(email) {
   const db = client();
   const { error } = await db.auth.signInWithPassword({ email, password });

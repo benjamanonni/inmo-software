@@ -93,27 +93,27 @@ export function PlanDetails() {
     <dl className="detail-list">
       <div>
         <dt>Valor del lote</dt>
-        <dd>{money(30000)}</dd>
+        <dd>{money(30000000)}</dd>
       </div>
       <div>
-        <dt>Anticipo · 20%</dt>
-        <dd>{money(6000)}</dd>
+        <dt>Anticipo</dt>
+        <dd>{money(0)}</dd>
       </div>
       <div>
-        <dt>Capital financiado · 80%</dt>
-        <dd>{money(24000)}</dd>
+        <dt>Total financiado con interés</dt>
+        <dd>{money(33000000)}</dd>
       </div>
       <div>
         <dt>Plan</dt>
-        <dd>48 cuotas de {money(500)}</dd>
+        <dd>48 cuotas de {money(687500)}</dd>
       </div>
       <div>
         <dt>Interés ilustrativo</dt>
-        <dd>0% · Sin recargos en la demo</dd>
+        <dd>10% total fijo · Sin UVA</dd>
       </div>
       <div>
         <dt>Moneda</dt>
-        <dd>Dólares estadounidenses · USD</dd>
+        <dd>Pesos argentinos · ARS</dd>
       </div>
     </dl>
   );

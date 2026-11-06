@@ -75,9 +75,9 @@ export function LiveProvider({ children }: { children: ReactNode }) {
       enabled: account?.enabled ?? false,
       accountId: account?.id,
       lot:
-        data?.contractLots
+        [...new Set(data?.contractLots
           .filter((l) => contractIds.includes(l.contract_id))
-          .map((l) => l.lot_id)
+          .map((l) => l.lot_id))]
           .join(", ") || "Sin asignar",
     };
   });

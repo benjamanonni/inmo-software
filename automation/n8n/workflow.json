@@ -7,7 +7,10 @@
       "name": "Ejecución manual",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [0, 0],
+      "position": [
+        0,
+        0
+      ],
       "parameters": {}
     },
     {
@@ -15,7 +18,10 @@
       "name": "Programación PENDIENTE",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [0, 200],
+      "position": [
+        0,
+        200
+      ],
       "disabled": true,
       "parameters": {
         "rule": {
@@ -34,7 +40,10 @@
       "name": "Configuración",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [220, 0],
+      "position": [
+        220,
+        0
+      ],
       "parameters": {
         "jsCode": "return [{json:{source:'demo',approved:false,upload:false,folderId:''}}];"
       }
@@ -44,7 +53,10 @@
       "name": "Origen PostgreSQL",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [440, 0],
+      "position": [
+        440,
+        0
+      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -70,7 +82,10 @@
       "name": "Validar aprobación",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [660, -120],
+      "position": [
+        660,
+        -120
+      ],
       "parameters": {
         "jsCode": "if (!$json.approved) throw new Error('Falta validar columnas y permisos'); return $input.all();"
       }
@@ -80,10 +95,13 @@
       "name": "Consulta de solo lectura",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
-      "position": [880, -120],
+      "position": [
+        880,
+        -120
+      ],
       "parameters": {
         "operation": "executeQuery",
-        "query": "select contract, installment, due_on, amount, currency from crook_export.installment_demo order by contract, installment",
+        "query": "select usuario, cuota_pagada, fecha, monto_pagado from crook_export.paid_installments order by usuario, fecha, cuota_pagada",
         "options": {}
       },
       "retryOnFail": true,
@@ -95,9 +113,12 @@
       "name": "Filas ficticias",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [660, 120],
+      "position": [
+        660,
+        120
+      ],
       "parameters": {
-        "jsCode": "return [{json:{scenario:'CROOK_FICTITIOUS',contract:'CR-2026-001',installment:9,due_on:'2026-11-10',amount:500,currency:'USD'}},{json:{scenario:'CROOK_FICTITIOUS',contract:'CR-2026-002',installment:6,due_on:'2026-10-20',amount:500,currency:'USD'}}];"
+        "jsCode": "return [{\"json\":{\"usuario\":\"lucia@example.com\",\"cuota_pagada\":1,\"fecha\":\"2026-03-10\",\"monto_pagado\":687500}},{\"json\":{\"usuario\":\"lucia@example.com\",\"cuota_pagada\":2,\"fecha\":\"2026-04-10\",\"monto_pagado\":687500}}];"
       }
     },
     {
@@ -105,7 +126,10 @@
       "name": "Generar XLSX",
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
-      "position": [1100, 0],
+      "position": [
+        1100,
+        0
+      ],
       "parameters": {
         "operation": "xlsx",
         "binaryPropertyName": "data",
@@ -121,7 +145,10 @@
       "name": "Destino Drive habilitado",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [1320, 0],
+      "position": [
+        1320,
+        0
+      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -147,7 +174,10 @@
       "name": "Validar carpeta",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1540, -100],
+      "position": [
+        1540,
+        -100
+      ],
       "parameters": {
         "jsCode": "if (!$('Configuración').first().json.folderId) throw new Error('Carpeta privada pendiente'); return $input.all();"
       }
@@ -157,7 +187,10 @@
       "name": "Subir a Drive privado",
       "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 3,
-      "position": [1760, -100],
+      "position": [
+        1760,
+        -100
+      ],
       "parameters": {
         "resource": "file",
         "operation": "upload",
@@ -184,7 +217,10 @@
       "name": "Verificar recepción",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1980, -100],
+      "position": [
+        1980,
+        -100
+      ],
       "parameters": {
         "jsCode": "if (!$json.id) throw new Error('Drive no devolvió ID de archivo'); return [{json:{execution:$execution.id,status:'uploaded-id-received',fileId:$json.id,privacy:'must-be-verified-separately'}}];"
       }
@@ -194,9 +230,25 @@
       "name": "Resultado manual binario",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1540, 120],
+      "position": [
+        1540,
+        120
+      ],
       "parameters": {
         "jsCode": "if (!$input.first().binary?.data) throw new Error('No se generó XLSX'); return $input.all();"
+      }
+    },
+    {
+      "id": "normalize",
+      "name": "Normalizar cuatro columnas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        0
+      ],
+      "parameters": {
+        "jsCode": "return $input.all().map(item=>{const row=item.json;const cuota=Number(row.cuota_pagada),monto=Number(row.monto_pagado),fecha=String(row.fecha).slice(0,10);if(typeof row.usuario!=='string'||!Number.isSafeInteger(cuota)||cuota<=0||!Number.isFinite(monto)||monto<=0||!/^\\d{4}-\\d{2}-\\d{2}$/.test(fecha))throw new Error('Invalid export data types');return {json:{usuario:row.usuario,cuota_pagada:cuota,fecha,monto_pagado:monto}};});"
       }
     }
   ],
@@ -267,7 +319,7 @@
       "main": [
         [
           {
-            "node": "Generar XLSX",
+            "node": "Normalizar cuatro columnas",
             "type": "main",
             "index": 0
           }
@@ -278,7 +330,7 @@
       "main": [
         [
           {
-            "node": "Generar XLSX",
+            "node": "Normalizar cuatro columnas",
             "type": "main",
             "index": 0
           }
@@ -330,6 +382,17 @@
         [
           {
             "node": "Verificar recepción",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar cuatro columnas": {
+      "main": [
+        [
+          {
+            "node": "Generar XLSX",
             "type": "main",
             "index": 0
           }

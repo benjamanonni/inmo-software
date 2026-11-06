@@ -38,13 +38,13 @@ export type Database = {
                     {
       foreignKeyName: "account_clients_account_id_fkey"
       columns: ["account_id"]
-isOneToOne: false
+isOneToOne: true
       referencedRelation: "accounts"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "account_clients_client_id_fkey"
       columns: ["client_id"]
-isOneToOne: false
+isOneToOne: true
       referencedRelation: "clients"
       referencedColumns: ["id"]
     }
@@ -131,14 +131,14 @@ isOneToOne: false
                   ]
                 },"contracts": {
                   Row: {
-                    "currency": string,"demo_scenario": boolean,"deposit": number,"id": number,"reference": string,"signed_on": string,"total": number
+                    "currency": string,"demo_scenario": boolean,"deposit": number,"id": number,"interest_percent": number,"price": number | null,"reference": string,"rule_code": string,"signed_on": string,"total": number
                   }
                   ComputedFields: never
                   Insert: {
-                    "currency": string,"demo_scenario"?: boolean,"deposit": number,"id"?: number,"reference": string,"signed_on": string,"total": number
+                    "currency": string,"demo_scenario"?: boolean,"deposit": number,"id"?: number,"interest_percent"?: number,"price"?: number | null,"reference": string,"rule_code"?: string,"signed_on": string,"total": number
                   }
                   Update: {
-                    "currency"?: string,"demo_scenario"?: boolean,"deposit"?: number,"id"?: number,"reference"?: string,"signed_on"?: string,"total"?: number
+                    "currency"?: string,"demo_scenario"?: boolean,"deposit"?: number,"id"?: number,"interest_percent"?: number,"price"?: number | null,"reference"?: string,"rule_code"?: string,"signed_on"?: string,"total"?: number
                   }
                   Relationships: [
 
@@ -329,7 +329,10 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "provision_buyer_link":
+            "create_demo_contract":
+{ Args: { "p_client": number,"p_count": number,"p_first_due": string,"p_lot": string,"p_price": number,"p_reference": string }; Returns: number
+                           },
+"provision_buyer_link":
 { Args: { "p_account": string,"p_client": number }; Returns: undefined
                            },
 "register_payment":

@@ -20,7 +20,7 @@ export const paymentInput = z
           amount: z.number().positive(),
         }),
       )
-      .min(1),
+      .length(1, "Cada pago corresponde a una sola cuota"),
     request: z.uuid(),
   })
   .refine(

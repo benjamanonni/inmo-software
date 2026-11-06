@@ -48,7 +48,12 @@ export function ClientOverview() {
       <Empty text="No hay contratos vinculados a tu cuenta. Contactá a administración." />
     );
   const settled = installments.filter((i) => i.settled).length;
-  const next = installments.find((i) => !i.settled);
+  const next = data.upcoming;
+  const paidPercent = Math.min(
+    100,
+    Math.round((total / contract.total) * 10000) / 100,
+  );
+  const remainingPercent = Math.max(0, 100 - paidPercent);
   return (
     <>
       <ContractSelector data={data} />
@@ -81,18 +86,23 @@ export function ClientOverview() {
       <div className="metrics">
         <Metric
           label="Valor del contrato demo"
-          value={money(contract.total)}
-          detail="Moneda: USD"
+          value={money(contract.total, contract.currency)}
+          detail={"Moneda: " + contract.currency}
         />
         <Metric
           label="Aportes registrados demo"
-          value={money(total)}
-          detail={"Anticipo + " + settled + " cuotas cubiertas"}
+          value={money(total, contract.currency)}
+          detail={
+            paidPercent.toLocaleString("es-AR") +
+            "% pagado · " +
+            settled +
+            " cuotas cubiertas"
+          }
         />
         <Metric
           label="Pendiente del plan demo"
-          value={money(Math.max(0, contract.total - total))}
-          detail="Escenario aritmético sin intereses"
+          value={money(Math.max(0, contract.total - total), contract.currency)}
+          detail={remainingPercent.toLocaleString("es-AR") + "% pendiente"}
         />
         <Metric
           label="Cuotas registradas"
@@ -112,12 +122,14 @@ export function ClientOverview() {
             aria-label="Avance de aportes"
           />
           <div className="progress-labels">
-            <span>{money(total)} registrados</span>
-            <span>{money(contract.total)} total</span>
+            <span>{money(total, contract.currency)} registrados</span>
+            <span>{money(contract.total, contract.currency)} total</span>
           </div>
           <div className="milestones">
-            <span>Anticipo registrado: {money(contract.deposit)}</span>
-            <span>Cuotas: {money(registered)}</span>
+            <span>
+              Anticipo registrado: {money(contract.deposit, contract.currency)}
+            </span>
+            <span>Cuotas: {money(registered, contract.currency)}</span>
           </div>
         </Panel>
         <Panel title="Tu próxima cuota">
@@ -127,7 +139,7 @@ export function ClientOverview() {
                 <span>
                   Cuota {next.number} / {installments.length}
                 </span>
-                <strong>{money(next.remaining)}</strong>
+                <strong>{money(next.remaining, contract.currency)}</strong>
                 <Badge tone="amber">
                   Vencimiento registrado · {next.due_on}
                 </Badge>
@@ -195,15 +207,17 @@ export function ClientLot() {
           <dl className="detail-list">
             <div>
               <dt>Valor del lote</dt>
-              <dd>{money(contract.total)}</dd>
+              <dd>{money(contract.total, contract.currency)}</dd>
             </div>
             <div>
-              <dt>Anticipo registrado</dt>
+              <dt>Anticipo del contrato</dt>
               <dd>{money(contract.deposit)}</dd>
             </div>
             <div>
-              <dt>Capital del escenario</dt>
-              <dd>{money(contract.total - contract.deposit)}</dd>
+              <dt>Total financiado con interés</dt>
+              <dd>
+                {money(contract.total - contract.deposit, contract.currency)}
+              </dd>
             </div>
             <div>
               <dt>Plan seleccionado</dt>
@@ -249,7 +263,7 @@ export function Installments() {
         <Metric
           label="Cuotas pendientes"
           value={String(data.installments.length - count)}
-          detail="Sin intereses ni recargos"
+          detail="Sin recargos por mora"
         />
         <Metric
           label="Plan"
@@ -308,14 +322,14 @@ export function Installments() {
                       </strong>
                     </td>
                     <td>{i.due_on}</td>
-                    <td>{money(i.amount)}</td>
-                    <td>{money(i.paid)}</td>
+                    <td>{money(i.amount, data.contract!.currency)}</td>
+                    <td>{money(i.paid, data.contract!.currency)}</td>
                     <td>
                       <Badge
                         tone={
                           i.settled
                             ? "green"
-                            : i.demo_state === "A vencer"
+                            : i.status === "A vencer"
                               ? "amber"
                               : "neutral"
                         }
@@ -324,7 +338,7 @@ export function Installments() {
                           ? "Registrada"
                           : i.paid > 0
                             ? "Pago parcial"
-                            : i.demo_state}
+                            : i.status}
                       </Badge>
                     </td>
                     <td>

@@ -11,7 +11,7 @@ import { accountSchema } from "../contracts/models";
 
 interface AuthState {
   session: Session | null;
-  role: "admin" | "buyer" | null;
+  role: "super_admin" | "admin" | "buyer" | null;
   enabled: boolean;
   loading: boolean;
   error: string;
@@ -21,7 +21,7 @@ const Context = createContext<AuthState | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [account, setAccount] = useState<{
-    role: "admin" | "buyer";
+    role: "super_admin" | "admin" | "buyer";
     enabled: boolean;
   } | null>(null);
   const [loading, setLoading] = useState(!demoMode && !!supabase);
@@ -115,7 +115,13 @@ export function Protected({
       </p>
     );
   if (!auth.session) return <Navigate to="/acceso" replace />;
-  if (auth.error || !auth.enabled || auth.role !== (admin ? "admin" : "buyer"))
+  if (
+    auth.error ||
+    !auth.enabled ||
+    (admin
+      ? !["admin", "super_admin"].includes(auth.role ?? "")
+      : auth.role !== "buyer")
+  )
     return (
       <div className="access-form">
         <h1>Acceso no habilitado</h1>

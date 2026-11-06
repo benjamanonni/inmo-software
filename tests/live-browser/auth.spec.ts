@@ -11,6 +11,7 @@ test("real buyer session survives reload and denies administrative routes", asyn
   await page.getByRole("button", { name: "Ingresar", exact: true }).click();
   await expect(page).toHaveURL(/\/cliente$/);
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Lucía");
+  await page.getByRole("combobox",{name:"Contrato",exact:true}).selectOption("1");
   await expect(
     page.locator(".metric").filter({ hasText: "Cuotas registradas" }),
   ).toContainText("8 / 48");

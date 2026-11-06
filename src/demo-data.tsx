@@ -13,11 +13,13 @@ import type {
 import { properties as fixtures } from "./properties";
 import type { ReactNode } from "react";
 
-export const money = (value: number) =>
+export const money = (value: number, currency: "ARS" | "USD" = "ARS") =>
   new Intl.NumberFormat("es-AR", {
     style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
+    currency,
+    currencyDisplay: "code",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(value);
 export interface Client {
   id: number;
@@ -75,7 +77,7 @@ const initialPayments: Payment[] = Array.from({ length: 8 }, (_, i) => ({
   id: 1008 - i,
   client: 1,
   installment: 8 - i,
-  amount: 500,
+  amount: 687500,
   date: `2026-${String(10 - i).padStart(2, "0")}-05`,
   voided: false,
 }));
@@ -131,7 +133,7 @@ function VisualProvider({ children }: { children: ReactNode }) {
   const [events, setEvents] = useState<PaymentEvent[]>([
     {
       payment: 1008,
-      text: "Pago registrado · USD 500 · Administración demo",
+      text: "Pago registrado · ARS 687.500 · Administración demo",
       date: "05/10/2026, 10:32",
     },
   ]);
@@ -143,15 +145,18 @@ function VisualProvider({ children }: { children: ReactNode }) {
     id: c.id,
     reference: "CR-2026-00" + c.id,
     signed_on: "2026-03-01",
-    currency: "USD",
-    total: 30000,
-    deposit: 6000,
+    currency: "ARS",
+    total: 33000000,
+    price: 30000000,
+    interest_percent: 10,
+    rule_code: "demo_ars_flat10_v1",
+    deposit: 0,
     demo_scenario: true,
   }));
   const plans: Plan[] = contracts.map((c) => ({
     id: c.id,
     contract_id: c.id,
-    label: "48 cuotas sin intereses · demo",
+    label: "48 cuotas mensuales · 10% total fijo · Sin anticipo",
   }));
   const installments: Installment[] = plans.flatMap((p) =>
     Array.from({ length: 48 }, (_, i) => ({
@@ -159,7 +164,7 @@ function VisualProvider({ children }: { children: ReactNode }) {
       plan_id: p.id,
       number: i + 1,
       due_on: new Date(Date.UTC(2026, i + 2, 10)).toISOString().slice(0, 10),
-      amount: 500,
+      amount: 687500,
       demo_state: i === 8 ? ("A vencer" as const) : ("Pendiente" as const),
     })),
   );
@@ -241,7 +246,7 @@ function VisualProvider({ children }: { children: ReactNode }) {
               id,
               client,
               installment,
-              amount: options?.amount ?? 500,
+              amount: options?.amount ?? 687500,
               contract: options?.contract ?? client,
               date: options?.date ?? "2026-11-05",
               voided: false,

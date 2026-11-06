@@ -37,7 +37,7 @@ Deno.serve(async (request) => {
     .select("role,enabled")
     .eq("id", identity.data.user.id)
     .single();
-  if (access.error || access.data.role !== "admin" || !access.data.enabled)
+  if (access.error || !["admin","super_admin"].includes(access.data.role) || !access.data.enabled)
     return respond(403, { error: "Administrator required" });
   let body: unknown;
   try {
