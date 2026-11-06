@@ -9,7 +9,7 @@ const must=(args,input)=>{const r=run(args,input);if(r.status!==0)throw new Erro
 const result=run(['exec','-e','N8N_RUNNERS_BROKER_PORT=5680','n8n-n8n-1','n8n','execute','--id=crook-demo-postgres-export','--rawOutput']);
 await writeFile('artifacts/n8n-postgres-execute.log',result.stdout+result.stderr);
 if(result.status!==0)throw new Error('Real PostgreSQL workflow failed; inspect private log');
-let execution;for(let i=result.stdout.indexOf('{');i<result.stdout.length;i++){if(result.stdout[i]!=='{')continue;try{execution=JSON.parse(result.stdout.slice(i));break;}catch{}}
+let execution;for(let i=result.stdout.indexOf('{');i<result.stdout.length;i++){if(result.stdout[i]!=='{')continue;try{execution=JSON.parse(result.stdout.slice(i));break;}catch { /* Log prefixes may contain braces; try the next JSON candidate. */ }}
 if(!execution?.finished||execution.status!=='success')throw new Error('No successful workflow result');
 const runData=execution.data.resultData.runData;const rows=runData['Normalizar cuatro columnas'][0].data.main[0];
 const binary=runData['Resultado manual binario'][0].data.main[0][0].binary.data;
