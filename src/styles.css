@@ -1,0 +1,206 @@
+body {
+  margin: 0;
+}
+html {
+  scroll-behavior: smooth;
+}
+#crook-app main:focus {
+  outline: none;
+}
+#crook-app .navlinks a {
+  font-size: 12px;
+  text-decoration: none;
+  padding: 8px 0;
+  white-space: nowrap;
+}
+#crook-app .navlinks a.active {
+  border-bottom: 1px solid currentColor;
+}
+#crook-app .navlinks .nav-cta {
+  padding: 13px 18px;
+}
+#crook-app .brand-mark {
+  font-size: 35px;
+  letter-spacing: -0.08em;
+}
+#crook-app .brand-name {
+  letter-spacing: 0.21em;
+}
+#crook-app .homehero {
+  height: 620px;
+}
+#crook-app .homehero h1 {
+  max-width: 820px;
+}
+#crook-app .card-photo {
+  display: block;
+  height: 310px;
+  position: relative;
+  overflow: hidden;
+}
+#crook-app .card-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s;
+}
+#crook-app .card-photo:hover img {
+  transform: scale(1.03);
+}
+#crook-app .card-photo:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(#0003, transparent 40%);
+}
+#crook-app .image-note {
+  position: absolute;
+  bottom: 10px;
+  right: 12px;
+  background: #18221bba;
+  color: white;
+  padding: 4px 7px;
+  font-size: 9px;
+  z-index: 1;
+}
+#crook-app .clay {
+  color: var(--clay);
+}
+#crook-app .contact-card {
+  background: var(--paper);
+  padding: 42px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 24px;
+}
+#crook-app .contact-card h3 {
+  font-size: 47px;
+}
+#crook-app .contact-card p {
+  color: var(--muted);
+}
+#crook-app .contact-status {
+  padding: 17px 0;
+  border-block: 1px solid var(--line);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+#crook-app .status-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--clay);
+  border-radius: 50%;
+}
+#crook-app .footer-nav a {
+  text-decoration: none;
+  font-size: 12px;
+}
+#crook-app .footer-tagline {
+  color: #c0cfc2;
+  margin-top: 14px;
+}
+#crook-app .catalog-intro {
+  padding-block: 80px;
+}
+#crook-app .catalog-intro h1 {
+  font-size: clamp(64px, 8vw, 110px);
+  margin: 25px 0;
+}
+#crook-app .catalog-intro p {
+  max-width: 440px;
+  color: var(--muted);
+  font-size: 16px;
+}
+#crook-app .catalog-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+  font-size: 12px;
+}
+#crook-app .detail-photo {
+  position: relative;
+  min-height: 490px;
+}
+#crook-app .detail-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+#crook-app .detail-copy {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12%;
+}
+#crook-app .detail-copy h2 {
+  font-size: 64px;
+  margin-top: 22px;
+}
+#crook-app .detail-copy p {
+  font-size: 16px;
+  line-height: 1.9;
+}
+#crook-app .detail-copy .demo-disclaimer {
+  font-size: 12px;
+  margin-block: 20px;
+}
+#crook-app .skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 1000;
+  background: var(--paper);
+  padding: 12px;
+  transform: translateY(-160%);
+}
+#crook-app .skip-link:focus {
+  transform: none;
+}
+#crook-app a:focus-visible {
+  outline: 3px solid #a98b58;
+  outline-offset: 4px;
+}
+#crook-app #contacto,
+#crook-app #nosotros {
+  scroll-margin-top: 20px;
+}
+@media (max-width: 660px) {
+  #crook-app .homehero {
+    height: 600px;
+  }
+  #crook-app .card-photo {
+    height: 240px;
+  }
+  #crook-app .contact-card {
+    padding: 27px;
+  }
+  #crook-app .contact-layout {
+    gap: 30px;
+  }
+  #crook-app .catalog-intro {
+    padding-block: 55px;
+  }
+  #crook-app .catalog-toolbar {
+    flex-direction: column;
+  }
+  #crook-app .detail-copy {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+  #crook-app .detail-copy h2 {
+    font-size: 51px;
+  }
+  #crook-app .detail-photo {
+    min-height: 300px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}

@@ -1,0 +1,1141 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap");
+#crook-app {
+  --ink: #232d29;
+  --green: #42584a;
+  --muted: #68736b;
+  --cream: #f6f4ed;
+  --sand: #e9e6d9;
+  --paper: #fffef9;
+  --clay: #b18e78;
+  --line: #dadcd3;
+  color: var(--ink);
+  background: var(--cream);
+  font:
+    400 14px/1.65 "DM Sans",
+    Arial,
+    sans-serif;
+  overflow: hidden;
+}
+#crook-app * {
+  box-sizing: border-box;
+}
+#crook-app button,
+#crook-app input,
+#crook-app textarea {
+  font: inherit;
+}
+#crook-app button {
+  cursor: pointer;
+}
+#crook-app button:focus-visible,
+#crook-app a:focus-visible,
+#crook-app input:focus-visible,
+#crook-app textarea:focus-visible {
+  outline: 3px solid #a98b58;
+  outline-offset: 4px;
+}
+#crook-app a {
+  color: inherit;
+}
+#crook-app h1,
+#crook-app h2,
+#crook-app h3,
+#crook-app p {
+  margin: 0;
+}
+#crook-app h1,
+#crook-app h2,
+#crook-app h3 {
+  font-weight: 400;
+}
+#crook-app .serif {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 1.02;
+}
+#crook-app .eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.21em;
+  font-size: 10px;
+  font-weight: 700;
+}
+#crook-app .micro {
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+#crook-app .label {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+#crook-app .label:before {
+  content: "";
+  width: 23px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.55;
+}
+#crook-app .container {
+  width: min(1240px, calc(100% - 104px));
+  margin: auto;
+}
+#crook-app .topline {
+  height: 28px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #dbdecf;
+  color: #465246;
+  letter-spacing: 0.11em;
+  font-size: 9px;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 0 12px;
+}
+#crook-app .header {
+  height: 81px;
+  position: relative;
+  z-index: 10;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5.5%;
+}
+#crook-app .brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-decoration: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--ink);
+  text-align: left;
+}
+#crook-app .brand-mark {
+  width: 46px;
+  height: 46px;
+  border: 1px solid var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Instrument Serif", serif;
+  font-size: 24px;
+  letter-spacing: -0.11em;
+  padding-right: 3px;
+}
+#crook-app .brand-name {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1.15;
+}
+#crook-app .brand-name small {
+  display: block;
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.25em;
+  margin-top: 6px;
+}
+#crook-app .navlinks {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+#crook-app .navlinks button {
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  padding: 8px 0;
+  font-size: 12px;
+  white-space: nowrap;
+}
+#crook-app .navlinks button.active {
+  border-bottom: 1px solid var(--ink);
+}
+#crook-app .navlinks .nav-cta {
+  padding: 13px 18px;
+  background: var(--ink);
+  color: white;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+#crook-app .nav-toggle {
+  display: none;
+  border: 1px solid var(--line);
+  padding: 10px 14px;
+  background: transparent;
+}
+#crook-app .view[hidden] {
+  display: none !important;
+}
+#crook-app .btn {
+  border: 0;
+  background: var(--green);
+  color: #fff;
+  padding: 17px 23px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 42px;
+  font-size: 12px;
+  font-weight: 600;
+  min-height: 52px;
+  text-decoration: none;
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+#crook-app .btn:hover {
+  background: #2a4033;
+  transform: translateY(-1px);
+}
+#crook-app .btn.light {
+  background: var(--paper);
+  color: var(--ink);
+}
+#crook-app .btn.outline {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--ink);
+}
+#crook-app .btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+#crook-app .arrow {
+  font-size: 19px;
+  line-height: 1;
+  font-weight: 400;
+}
+#crook-app .photo {
+  background-position: center;
+  background-size: cover;
+  background-color: #7b8c79;
+  position: relative;
+}
+#crook-app .photo:after {
+  content: "Imagen de referencia visual";
+  position: absolute;
+  bottom: 9px;
+  right: 11px;
+  padding: 4px 7px;
+  background: rgba(24, 34, 27, 0.57);
+  color: white;
+  font-size: 9px;
+  letter-spacing: 0.03em;
+}
+#crook-app .homehero {
+  height: 570px;
+  min-height: 450px;
+  position: relative;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  background-image:
+    linear-gradient(90deg, rgba(14, 29, 23, 0.78), rgba(14, 29, 23, 0.18) 75%),
+    url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1800&q=85");
+}
+#crook-app .homehero .hero-inner {
+  width: min(1200px, calc(100% - 104px));
+  margin: auto;
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 240px;
+  align-items: end;
+  gap: 30px;
+}
+#crook-app .homehero h1 {
+  font-size: clamp(64px, 8.3vw, 115px);
+  max-width: 790px;
+  margin: 25px 0 21px;
+}
+#crook-app .homehero h1 i {
+  font-weight: 400;
+  color: #d9ded1;
+}
+#crook-app .homehero p {
+  max-width: 450px;
+  color: #e4e8e2;
+  font-size: 14px;
+  line-height: 1.8;
+}
+#crook-app .hero-buttons {
+  display: flex;
+  gap: 13px;
+  flex-wrap: wrap;
+  margin-top: 27px;
+}
+#crook-app .hero-aside {
+  align-self: end;
+  margin-bottom: 20px;
+  border-left: 1px solid rgba(255, 255, 255, 0.45);
+  padding: 5px 0 5px 21px;
+  max-width: 230px;
+  color: #f1f2eb;
+}
+#crook-app .hero-aside .large {
+  font:
+    italic 31px "Instrument Serif",
+    serif;
+  line-height: 1.1;
+  margin: 9px 0;
+}
+#crook-app .hero-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 5.5%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(15, 29, 23, 0.23);
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+#crook-app .intro {
+  padding: 93px 0 82px;
+  display: grid;
+  grid-template-columns: 1fr 1.05fr;
+  align-items: start;
+  gap: 12%;
+}
+#crook-app .intro h2 {
+  font-size: clamp(44px, 5.6vw, 72px);
+  margin-top: 25px;
+}
+#crook-app .intro-right {
+  padding-top: 43px;
+}
+#crook-app .intro-right > p {
+  font-size: 17px;
+  line-height: 1.8;
+  max-width: 500px;
+}
+#crook-app .intro-facts {
+  display: flex;
+  gap: 27px;
+  margin-top: 39px;
+  border-top: 1px solid var(--line);
+  padding-top: 23px;
+}
+#crook-app .intro-facts div {
+  flex: 1;
+}
+#crook-app .intro-facts b {
+  display: block;
+  font-family: "Instrument Serif", serif;
+  font-size: 39px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+#crook-app .intro-facts span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+}
+#crook-app .sectionhead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 25px;
+  margin-bottom: 32px;
+}
+#crook-app .sectionhead h2 {
+  font-size: clamp(43px, 5vw, 67px);
+  margin-top: 15px;
+}
+#crook-app .sectionhead p {
+  max-width: 320px;
+  color: var(--muted);
+}
+#crook-app .developments {
+  background: #e9e9df;
+  padding: 80px 0 98px;
+}
+#crook-app .project-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+#crook-app .project-card {
+  background: var(--paper);
+  min-width: 0;
+}
+#crook-app .project-card .photo {
+  height: 310px;
+  overflow: hidden;
+}
+#crook-app .project-card .photo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, rgba(7, 26, 12, 0.25), transparent 55%);
+  z-index: 1;
+}
+#crook-app .card-index {
+  position: absolute;
+  z-index: 2;
+  top: 19px;
+  left: 20px;
+  color: white;
+  font-size: 11px;
+  letter-spacing: 0.17em;
+}
+#crook-app .project-card .body {
+  padding: 26px 29px 31px;
+}
+#crook-app .project-card h3 {
+  font-size: 43px;
+  margin: 7px 0 13px;
+}
+#crook-app .project-card p {
+  color: var(--muted);
+  max-width: 420px;
+  min-height: 48px;
+}
+#crook-app .card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 27px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  gap: 15px;
+}
+#crook-app .textbutton {
+  border: 0;
+  background: none;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  padding: 7px 0;
+}
+#crook-app .textbutton .arrow {
+  font-size: 23px;
+}
+#crook-app .quote {
+  padding: 92px 0;
+  background: var(--green);
+  color: #fff;
+}
+#crook-app .quote-layout {
+  display: grid;
+  grid-template-columns: 0.72fr 1.28fr;
+  gap: 11%;
+  align-items: start;
+}
+#crook-app .quote h2 {
+  font-size: clamp(43px, 5.2vw, 71px);
+  margin-top: 26px;
+}
+#crook-app .quote h2 i {
+  color: #d5dbc8;
+}
+#crook-app .quote-detail {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  padding-top: 13px;
+}
+#crook-app .quote-detail h3 {
+  font:
+    normal 29px "Instrument Serif",
+    serif;
+  margin: 0 0 13px;
+}
+#crook-app .quote-detail p {
+  color: #dce5db;
+  line-height: 1.9;
+}
+#crook-app .experience {
+  padding: 91px 0;
+}
+#crook-app .steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 41px;
+}
+#crook-app .step {
+  border-top: 1px solid #aeb8ad;
+  padding-top: 19px;
+}
+#crook-app .step .number {
+  color: #819287;
+  font-size: 12px;
+}
+#crook-app .step h3 {
+  font:
+    normal 31px "Instrument Serif",
+    serif;
+  margin: 16px 0 9px;
+}
+#crook-app .step p {
+  color: var(--muted);
+  max-width: 320px;
+}
+#crook-app .contact {
+  background: var(--sand);
+  padding: 92px 0;
+}
+#crook-app .contact-layout {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 9%;
+}
+#crook-app .contact h2 {
+  font-size: clamp(45px, 5.4vw, 73px);
+  margin: 25px 0 23px;
+}
+#crook-app .contact .lead {
+  font-size: 15px;
+  max-width: 380px;
+}
+#crook-app .contact .note {
+  margin-top: 31px;
+  color: var(--muted);
+  max-width: 375px;
+}
+#crook-app .form {
+  background: var(--paper);
+  padding: 35px;
+  display: grid;
+  gap: 18px;
+}
+#crook-app .formtop {
+  font-family: "Instrument Serif", serif;
+  font-size: 30px;
+  margin-bottom: 5px;
+}
+#crook-app .form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+#crook-app .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+#crook-app .field label {
+  font-size: 11px;
+  font-weight: 700;
+}
+#crook-app .field input,
+#crook-app .field textarea {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #afb7ab;
+  background: transparent;
+  padding: 10px 0;
+  color: var(--ink);
+  border-radius: 0;
+  outline-offset: 2px;
+  resize: vertical;
+}
+#crook-app .field input::placeholder,
+#crook-app .field textarea::placeholder {
+  color: #9ca69a;
+}
+#crook-app .form-note {
+  color: var(--muted);
+  font-size: 10px;
+}
+#crook-app .form .btn {
+  width: 100%;
+}
+#crook-app .formfeedback {
+  font-size: 12px;
+  color: var(--green);
+  font-weight: 700;
+}
+#crook-app .footer {
+  background: #25352c;
+  color: #f5f6f0;
+  padding: 48px 0 23px;
+}
+#crook-app .footer-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 25px;
+  align-items: start;
+}
+#crook-app .footer-title {
+  font-family: "Instrument Serif", serif;
+  font-size: 42px;
+  line-height: 1;
+}
+#crook-app .footer-nav {
+  display: flex;
+  gap: 25px;
+  flex-wrap: wrap;
+}
+#crook-app .footer-nav button {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font-size: 12px;
+}
+#crook-app .footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  margin-top: 55px;
+  padding-top: 20px;
+  color: #aebbae;
+  font-size: 10px;
+  gap: 20px;
+}
+#crook-app .phero {
+  display: grid;
+  grid-template-columns: 44% 56%;
+  min-height: 490px;
+  background: #f0f0e8;
+}
+#crook-app .phero-text {
+  padding: 65px max(45px, 6vw) 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+#crook-app .phero h1 {
+  font-size: clamp(67px, 7vw, 109px);
+  line-height: 0.95;
+  margin: 29px 0 22px;
+}
+#crook-app .phero .project-intro {
+  font-size: 15px;
+  max-width: 420px;
+  color: #4d5b53;
+}
+#crook-app .phero-text .details {
+  margin-top: 36px;
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+#crook-app .phero-text .details div {
+  border-top: 1px solid var(--line);
+  padding-top: 9px;
+  min-width: 135px;
+}
+#crook-app .phero-text .details strong {
+  font-size: 12px;
+  font-weight: 600;
+  display: block;
+  margin-top: 4px;
+}
+#crook-app .phero-image {
+  min-height: 470px;
+}
+#crook-app .psection {
+  padding: 87px 0;
+}
+#crook-app .psection .sectionhead {
+  margin-bottom: 26px;
+}
+#crook-app .lot-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 305px;
+  gap: 18px;
+}
+#crook-app .lot-canvas {
+  background: #e2e7db;
+  position: relative;
+  min-height: 420px;
+  padding: 18px;
+  overflow: hidden;
+}
+#crook-app .lot-canvas svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 385px;
+}
+#crook-app .lot-canvas .lot {
+  cursor: pointer;
+  transition:
+    fill 0.15s,
+    stroke-width 0.15s;
+}
+#crook-app .lot-canvas .lot:hover,
+#crook-app .lot-canvas .lot:focus {
+  stroke: #19291e;
+  stroke-width: 4;
+}
+#crook-app .lot-canvas .lot.selected {
+  stroke: #25352c;
+  stroke-width: 5;
+}
+#crook-app .lot-canvas .lot-num {
+  pointer-events: none;
+  font:
+    600 15px "DM Sans",
+    sans-serif;
+  fill: #243b2c;
+}
+#crook-app .lot-canvas .lot-num.muted {
+  fill: #6c322c;
+}
+#crook-app .lot-panel {
+  padding: 26px;
+  background: var(--paper);
+  display: flex;
+  flex-direction: column;
+}
+#crook-app .lot-panel h3 {
+  font:
+    normal 43px "Instrument Serif",
+    serif;
+  margin: 13px 0 20px;
+}
+#crook-app .lot-panel .stat {
+  border-top: 1px solid var(--line);
+  padding: 14px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  font-size: 12px;
+}
+#crook-app .lot-panel .stat span:first-child {
+  color: var(--muted);
+}
+#crook-app .lot-panel .stat strong {
+  font-weight: 700;
+}
+#crook-app .state {
+  border-radius: 100px;
+  padding: 5px 11px;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+#crook-app .state.yes {
+  background: #dce9d8;
+  color: #2e6138;
+}
+#crook-app .state.no {
+  background: #f4dcd7;
+  color: #964d3e;
+}
+#crook-app .lot-panel .explanation {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.8;
+  margin-top: 17px;
+}
+#crook-app .lot-panel .btn {
+  margin-top: auto;
+  width: 100%;
+  gap: 12px;
+  padding: 17px 13px;
+}
+#crook-app .legend {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  margin-bottom: 15px;
+}
+#crook-app .legend i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+#crook-app .legend .a {
+  background: #87aa88;
+}
+#crook-app .legend .b {
+  background: #c58b7b;
+}
+#crook-app .legend .smallnotice {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 10px;
+}
+#crook-app .demo-disclaimer {
+  font-size: 11px;
+  color: #667368;
+  padding-top: 13px;
+}
+#crook-app .media-section {
+  background: #e9e9df;
+  padding: 84px 0;
+}
+#crook-app .media-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 19px;
+}
+#crook-app .media-photo {
+  height: 330px;
+}
+#crook-app .media-side {
+  background: var(--green);
+  color: #fff;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 30px;
+}
+#crook-app .media-side h3 {
+  font:
+    normal 42px "Instrument Serif",
+    serif;
+  line-height: 1.05;
+}
+#crook-app .media-side p {
+  color: #d5ded6;
+}
+#crook-app .media-side button {
+  align-self: flex-start;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid #ccd5cb;
+  padding: 0 0 10px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 12px;
+}
+#crook-app .project-end {
+  background: #334639;
+  color: #fff;
+  padding: 75px 0;
+}
+#crook-app .project-end .end-layout {
+  display: flex;
+  justify-content: space-between;
+  gap: 30px;
+  align-items: center;
+}
+#crook-app .project-end h2 {
+  font:
+    normal clamp(40px, 5vw, 65px) "Instrument Serif",
+    serif;
+  max-width: 750px;
+  line-height: 1.08;
+  margin-top: 15px;
+}
+#crook-app .modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(14, 22, 18, 0.83);
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+#crook-app .modal.open {
+  display: flex;
+}
+#crook-app .modal-inner {
+  background: var(--paper);
+  color: var(--ink);
+  width: min(740px, 100%);
+  padding: 24px;
+  max-height: 87vh;
+  overflow: auto;
+}
+#crook-app .modal-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  align-items: start;
+  margin-bottom: 14px;
+}
+#crook-app .modal-heading h3 {
+  font:
+    normal 31px "Instrument Serif",
+    serif;
+}
+#crook-app .modal-x {
+  border: 1px solid var(--line);
+  width: 34px;
+  height: 34px;
+  background: transparent;
+  font-size: 20px;
+}
+#crook-app .modal-text {
+  padding: 21px;
+  background: var(--sand);
+  font-size: 14px;
+  margin: 16px 0;
+  line-height: 1.7;
+}
+#crook-app .modal iframe {
+  width: 100%;
+  aspect-ratio: 16/9;
+  border: 0;
+  background: #25352c;
+}
+#crook-app .modal .btn {
+  margin-top: 9px;
+}
+#crook-app .notice {
+  color: #68766a;
+  font-size: 11px;
+}
+#crook-app .workbar {
+  background: #e2dfd3;
+  padding: 16px 5.5%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  font-size: 11px;
+}
+#crook-app .export {
+  border: 1px solid #6b776d;
+  background: none;
+  color: var(--ink);
+  padding: 8px 12px;
+  font-weight: 700;
+  font-size: 10px;
+  white-space: nowrap;
+}
+@media (max-width: 900px) {
+  #crook-app .container {
+    width: calc(100% - 52px);
+  }
+  #crook-app .homehero .hero-inner {
+    width: calc(100% - 52px);
+  }
+  #crook-app .homehero h1 {
+    font-size: clamp(60px, 10vw, 87px);
+  }
+  #crook-app .homehero .hero-inner {
+    grid-template-columns: 1fr;
+  }
+  #crook-app .hero-aside {
+    display: none;
+  }
+  #crook-app .intro {
+    gap: 6%;
+  }
+  #crook-app .lot-stage {
+    grid-template-columns: 1fr;
+  }
+  #crook-app .lot-panel {
+    min-height: 300px;
+  }
+  #crook-app .lot-panel .btn {
+    margin-top: 22px;
+  }
+  #crook-app .phero {
+    grid-template-columns: 1fr 1fr;
+  }
+  #crook-app .phero-text {
+    padding: 48px 28px;
+  }
+  #crook-app .phero h1 {
+    font-size: 70px;
+  }
+}
+@media (max-width: 660px) {
+  #crook-app .header {
+    height: 68px;
+    padding: 0 19px;
+  }
+  #crook-app .brand-mark {
+    width: 40px;
+    height: 40px;
+  }
+  #crook-app .nav-toggle {
+    display: block;
+  }
+  #crook-app .navlinks {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 68px;
+    background: var(--paper);
+    padding: 18px 25px 25px;
+    border-bottom: 1px solid var(--line);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    box-shadow: 0 15px 19px #0001;
+  }
+  #crook-app .navlinks.show {
+    display: flex;
+  }
+  #crook-app .navlinks button {
+    text-align: left;
+  }
+  #crook-app .navlinks .nav-cta {
+    justify-content: space-between;
+  }
+  #crook-app .container {
+    width: calc(100% - 38px);
+  }
+  #crook-app .homehero {
+    height: 600px;
+    min-height: 0;
+    align-items: center;
+  }
+  #crook-app .homehero .hero-inner {
+    width: calc(100% - 38px);
+  }
+  #crook-app .homehero h1 {
+    font-size: clamp(57px, 12vw, 82px);
+    margin: 19px 0;
+  }
+  #crook-app .homehero p {
+    font-size: 13px;
+  }
+  #crook-app .hero-bottom {
+    padding: 13px 19px;
+    font-size: 8px;
+  }
+  #crook-app .intro {
+    grid-template-columns: 1fr;
+    padding: 73px 0 67px;
+    gap: 5px;
+  }
+  #crook-app .intro-right {
+    padding-top: 11px;
+  }
+  #crook-app .intro-right > p {
+    font-size: 15px;
+  }
+  #crook-app .intro h2,
+  #crook-app .sectionhead h2 {
+    font-size: 51px;
+  }
+  #crook-app .sectionhead {
+    display: block;
+  }
+  #crook-app .sectionhead p {
+    margin-top: 15px;
+  }
+  #crook-app .developments,
+  #crook-app .experience,
+  #crook-app .media-section {
+    padding: 66px 0;
+  }
+  #crook-app .project-cards,
+  #crook-app .quote-layout,
+  #crook-app .quote-detail,
+  #crook-app .steps,
+  #crook-app .contact-layout,
+  #crook-app .media-grid {
+    grid-template-columns: 1fr;
+  }
+  #crook-app .project-card .photo {
+    height: 240px;
+  }
+  #crook-app .project-card h3 {
+    font-size: 39px;
+  }
+  #crook-app .quote {
+    padding: 70px 0;
+  }
+  #crook-app .quote-layout {
+    gap: 34px;
+  }
+  #crook-app .quote h2 {
+    font-size: 52px;
+  }
+  #crook-app .quote-detail {
+    gap: 19px;
+  }
+  #crook-app .contact {
+    padding: 68px 0;
+  }
+  #crook-app .contact h2 {
+    font-size: 56px;
+  }
+  #crook-app .form {
+    padding: 23px;
+  }
+  #crook-app .form-grid {
+    grid-template-columns: 1fr;
+  }
+  #crook-app .phero {
+    grid-template-columns: 1fr;
+  }
+  #crook-app .phero-text {
+    padding: 45px 20px;
+  }
+  #crook-app .phero h1 {
+    font-size: 79px;
+  }
+  #crook-app .phero-image {
+    min-height: 280px;
+  }
+  #crook-app .psection {
+    padding: 67px 0;
+  }
+  #crook-app .lot-canvas {
+    padding: 3px;
+    min-height: 275px;
+  }
+  #crook-app .lot-canvas svg {
+    min-height: 270px;
+  }
+  #crook-app .lot-panel h3 {
+    font-size: 37px;
+  }
+  #crook-app .legend .smallnotice {
+    margin: 0;
+  }
+  #crook-app .media-photo {
+    height: 250px;
+  }
+  #crook-app .media-side {
+    min-height: 270px;
+  }
+  #crook-app .project-end .end-layout {
+    display: block;
+  }
+  #crook-app .project-end .btn {
+    margin-top: 26px;
+  }
+  #crook-app .footer-row,
+  #crook-app .footer-bottom {
+    display: block;
+  }
+  #crook-app .footer-nav {
+    margin-top: 27px;
+  }
+  #crook-app .footer-bottom span {
+    display: block;
+    margin-bottom: 8px;
+  }
+  #crook-app .workbar {
+    padding: 15px 19px;
+    align-items: start;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #crook-app *,
+  #crook-app *:before,
+  #crook-app *:after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
