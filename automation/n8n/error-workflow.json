@@ -1,0 +1,37 @@
+{
+  "name": "Crook — registro de errores",
+  "active": false,
+  "nodes": [
+    {
+      "id": "error",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "parameters": {}
+    },
+    {
+      "id": "record",
+      "name": "Metadatos del fallo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 0],
+      "parameters": {
+        "jsCode": "return [{json:{status:'failed',workflowId:$json.workflow?.id,executionId:$json.execution?.id,lastNode:$json.execution?.lastNodeExecuted,recordedAt:new Date().toISOString()}}];"
+      }
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Metadatos del fallo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

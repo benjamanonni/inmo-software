@@ -1,9 +1,19 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Brand } from "./components";
+import { Link } from "react-router-dom";
+import { PropertyAdmin } from "./features/properties/PropertyAdmin";
+import { PaymentsPanel } from "./features/payments/PaymentsPanel";
+import { errorMessage } from "./shared/result";
+import { demoMode } from "./integrations/supabase/client";
+import {
+  ConnectedContracts,
+  ConnectedLots,
+  ConnectedReports,
+  ConnectedOverview,
+} from "./features/admin/ConnectedViews";
+import { createBuyerAccount } from "./features/clients/service";
 import { money, useDemo } from "./demo-data";
-import { properties } from "./properties";
+
 import {
   Badge,
   Metric,
@@ -14,6 +24,10 @@ import {
 } from "./workspace-ui";
 
 export function AdminOverview() {
+  if (!demoMode) return <ConnectedOverview />;
+  return <VisualOverview />;
+}
+function VisualOverview() {
   const { clients, payments, events } = useDemo();
   const paid = payments
     .filter((p) => !p.voided)
@@ -136,18 +150,29 @@ export function AdminOverview() {
 
 export function Clients() {
   const { clients, addClient } = useDemo();
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
   const [search, setSearch] = useState("");
   const [adding, setAdding] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
   const selectedClient = clients.find((c) => c.id === selected);
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    addClient(
-      String(data.get("name")).trim(),
-      String(data.get("email")).trim(),
-    );
-    setAdding(false);
+    if (busy) return;
+    const form = new FormData(event.currentTarget);
+    setBusy(true);
+    try {
+      await addClient(
+        String(form.get("name")).trim(),
+        String(form.get("email")).trim(),
+      );
+      setAdding(false);
+      setMessage("Cliente registrado.");
+    } catch (error) {
+      setMessage(errorMessage(error));
+    } finally {
+      setBusy(false);
+    }
   }
   return (
     <>
@@ -223,10 +248,14 @@ export function Clients() {
               <input name="email" type="email" required />
             </label>
             <p className="muted">
-              Se crea sin contrato y sin acceso habilitado. Solo se conserva
-              durante esta sesión de diseño.
+              {demoMode
+                ? "Se crea sin contrato y sin acceso habilitado. Solo se conserva durante esta sesión de diseño."
+                : "El cliente se guarda en PostgreSQL, sin cuenta de acceso automática."}
             </p>
-            <button className="dash-button">Crear cliente</button>
+            {message && <p role="status">{message}</p>}
+            <button className="dash-button" disabled={busy}>
+              Crear cliente
+            </button>
           </form>
         </Modal>
       )}
@@ -256,6 +285,10 @@ export function Clients() {
 }
 
 export function Contracts() {
+  if (!demoMode) return <ConnectedContracts />;
+  return <VisualContracts />;
+}
+function VisualContracts() {
   const { clients } = useDemo();
   const [detail, setDetail] = useState(false);
   return (
@@ -334,6 +367,10 @@ export function Contracts() {
 }
 
 export function Lots() {
+  if (!demoMode) return <ConnectedLots />;
+  return <VisualLots />;
+}
+function VisualLots() {
   const [lot, setLot] = useState(12);
   return (
     <div className="dashboard-grid lots-grid">
@@ -396,268 +433,17 @@ export function Lots() {
 }
 
 export function Payments({ admin = false }: { admin?: boolean }) {
-  const { payments, clients, addPayment, voidPayment, events } = useDemo();
-  const [adding, setAdding] = useState(false);
-  const [receipt, setReceipt] = useState<number | null>(null);
-  const [voiding, setVoiding] = useState<number | null>(null);
-  const [history, setHistory] = useState(false);
-  const [message, setMessage] = useState("");
-  const navigate = useNavigate();
-  const rows = admin ? payments : payments.filter((p) => p.client === 1);
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const client = Number(data.get("client"));
-    const installment = Number(data.get("installment"));
-    if (
-      payments.some(
-        (p) =>
-          p.client === client && p.installment === installment && !p.voided,
-      )
-    ) {
-      setMessage("Esta cuota ya tiene un pago activo. Revisá el historial.");
-      return;
-    }
-    addPayment(client, installment);
-    setAdding(false);
-    setMessage(
-      "Pago demo registrado. Ya se refleja en el portal del comprador.",
-    );
-  }
-  const receiptPayment = payments.find((p) => p.id === receipt);
-  return (
-    <>
-      <div className="action-row">
-        <p>Registro manual · Sin pagos online</p>
-        {admin && (
-          <div className="button-group">
-            <button
-              className="dash-button secondary"
-              onClick={() => setHistory(true)}
-            >
-              Ver historial
-            </button>
-            <button
-              className="dash-button"
-              onClick={() => {
-                setMessage("");
-                setAdding(true);
-              }}
-            >
-              + Registrar pago
-            </button>
-          </div>
-        )}
-      </div>
-      {message && (
-        <p className="feedback" role="status">
-          {message}
-        </p>
-      )}
-      <Panel
-        title={admin ? "Movimientos registrados" : "Mis pagos y comprobantes"}
-      >
-        <div className="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>Referencia</th>
-                {admin && <th>Cliente</th>}
-                <th>Fecha</th>
-                <th>Importe</th>
-                <th>Estado</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((p) => (
-                <tr key={p.id}>
-                  <td>
-                    <strong>PG-{String(p.id).slice(-4)}</strong>
-                    <small>
-                      Cuota {String(p.installment).padStart(2, "0")}
-                    </small>
-                  </td>
-                  {admin && (
-                    <td>{clients.find((c) => c.id === p.client)?.name}</td>
-                  )}
-                  <td>{p.date.split("-").reverse().join("/")}</td>
-                  <td>{money(p.amount)}</td>
-                  <td>
-                    <Badge tone={p.voided ? "red" : "green"}>
-                      {p.voided ? "Anulado" : "Registrado"}
-                    </Badge>
-                  </td>
-                  <td>
-                    <div className="button-group">
-                      <button
-                        className="table-action"
-                        onClick={() => setReceipt(p.id)}
-                      >
-                        Ver comprobante
-                      </button>
-                      {admin && !p.voided && (
-                        <button
-                          className="table-action danger"
-                          onClick={() => setVoiding(p.id)}
-                        >
-                          Anular
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {!rows.length && <Empty text="Todavía no hay pagos registrados." />}
-      </Panel>
-      {adding && (
-        <Modal title="Registrar un pago manual" close={() => setAdding(false)}>
-          <form className="dash-form" onSubmit={submit}>
-            <label>
-              Cliente
-              <select name="client">
-                {clients
-                  .filter((c) => c.lot !== "Sin asignar")
-                  .map((c) => (
-                    <option value={c.id} key={c.id}>
-                      {c.name} · {c.lot}
-                    </option>
-                  ))}
-              </select>
-            </label>
-            <label>
-              Número de cuota
-              <input
-                name="installment"
-                type="number"
-                min="1"
-                max="48"
-                defaultValue="9"
-                required
-              />
-            </label>
-            <label>
-              Importe del ejemplo
-              <input value="USD 500" readOnly />
-            </label>
-            <label>
-              Medio de pago
-              <select>
-                <option>Transferencia · Demo</option>
-                <option>Efectivo · Demo</option>
-              </select>
-            </label>
-            <p className="muted">
-              Fecha de referencia: 05/11/2026. Este formulario registra una
-              operación ficticia en memoria.
-            </p>
-            {message && <p role="alert">{message}</p>}
-            <button className="dash-button">Confirmar registro demo</button>
-          </form>
-        </Modal>
-      )}
-      {voiding !== null && (
-        <Modal title="Anular pago" close={() => setVoiding(null)}>
-          <form
-            className="dash-form"
-            onSubmit={(e) => {
-              e.preventDefault();
-              const data = new FormData(e.currentTarget);
-              voidPayment(voiding, String(data.get("reason")).trim());
-              setVoiding(null);
-              setMessage(
-                "Pago anulado en la demo. El original y el evento permanecen en el historial.",
-              );
-            }}
-          >
-            <p>
-              El pago original se conserva. Esta acción actualiza el resumen del
-              comprador.
-            </p>
-            <label>
-              Motivo de la anulación
-              <textarea name="reason" required minLength={5} />
-            </label>
-            <button className="dash-button danger-button">
-              Confirmar anulación demo
-            </button>
-          </form>
-        </Modal>
-      )}
-      {receiptPayment && (
-        <Modal
-          title="Comprobante de demostración"
-          close={() => setReceipt(null)}
-        >
-          <div className="receipt">
-            <Brand />
-            <div className="receipt-watermark">SIN VALIDEZ COMERCIAL</div>
-            <h3>Constancia de registro manual</h3>
-            <dl className="detail-list">
-              <div>
-                <dt>Referencia</dt>
-                <dd>PG-{receiptPayment.id}</dd>
-              </div>
-              <div>
-                <dt>Comprador</dt>
-                <dd>
-                  {clients.find((c) => c.id === receiptPayment.client)?.name}
-                </dd>
-              </div>
-              <div>
-                <dt>Cuota</dt>
-                <dd>{receiptPayment.installment}</dd>
-              </div>
-              <div>
-                <dt>Fecha</dt>
-                <dd>{receiptPayment.date}</dd>
-              </div>
-              <div>
-                <dt>Importe</dt>
-                <dd>{money(receiptPayment.amount)}</dd>
-              </div>
-              <div>
-                <dt>Estado</dt>
-                <dd>{receiptPayment.voided ? "ANULADO" : "Registrado"}</dd>
-              </div>
-            </dl>
-            <p className="muted">
-              Documento visual ficticio, no es un comprobante fiscal ni un
-              archivo de Storage.
-            </p>
-          </div>
-        </Modal>
-      )}
-      {history && (
-        <Modal title="Trazabilidad de pagos" close={() => setHistory(false)}>
-          {events.map((event, i) => (
-            <div className="timeline-item" key={i}>
-              <i />
-              <div>
-                <strong>{event.text}</strong>
-                <small>
-                  Pago #{event.payment} · {event.date}
-                </small>
-              </div>
-            </div>
-          ))}
-          <button
-            className="dash-button secondary"
-            onClick={() => navigate("/cliente/pagos")}
-          >
-            Ver perspectiva del comprador ↗
-          </button>
-        </Modal>
-      )}
-    </>
-  );
+  return <PaymentsPanel admin={admin} />;
 }
 
 export function Properties() {
-  const { published, togglePublished } = useDemo();
+  if (!demoMode) return <PropertyAdmin />;
+  return <VisualProperties />;
+}
+function VisualProperties() {
+  const { published, togglePublished, properties, editProperty } = useDemo();
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState<number | null>(null);
   const [notes, setNotes] = useState<Record<number, string>>({});
   return (
@@ -666,6 +452,11 @@ export function Properties() {
         Las publicaciones se reflejan en el catálogo durante esta sesión. La
         edición de fotografías y el almacenamiento se conectarán a Supabase.
       </div>
+      {message && (
+        <p role="status" className="demo-callout">
+          {message}
+        </p>
+      )}
       <div className="admin-properties">
         {properties.map((p, i) => (
           <section className="dash-panel" key={p.id}>
@@ -679,7 +470,17 @@ export function Properties() {
               <div className="button-group">
                 <button
                   className="dash-button"
-                  onClick={() => togglePublished(i)}
+                  disabled={busy}
+                  onClick={async () => {
+                    setBusy(true);
+                    try {
+                      await togglePublished(i);
+                    } catch (error) {
+                      setMessage(errorMessage(error));
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
                 >
                   {published[i] ? "Despublicar" : "Publicar"}
                 </button>
@@ -701,14 +502,20 @@ export function Properties() {
         >
           <form
             className="dash-form"
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
-              const data = new FormData(e.currentTarget);
-              setNotes((current) => ({
-                ...current,
-                [editing]: String(data.get("description")),
-              }));
-              setEditing(null);
+              const form = new FormData(e.currentTarget);
+              setBusy(true);
+              try {
+                const value = String(form.get("description"));
+                await editProperty(editing, value);
+                setNotes((current) => ({ ...current, [editing]: value }));
+                setEditing(null);
+              } catch (error) {
+                setMessage(errorMessage(error));
+              } finally {
+                setBusy(false);
+              }
             }}
           >
             <label>
@@ -732,6 +539,10 @@ export function Properties() {
 }
 
 export function Reports() {
+  if (!demoMode) return <ConnectedReports />;
+  return <VisualReports />;
+}
+function VisualReports() {
   const { clients } = useDemo();
   const [filter, setFilter] = useState("Todas");
   const states = ["Al día", "Vencidas", "A vencer", "Al día"];
@@ -805,15 +616,22 @@ export function Reports() {
 }
 
 export function Accounts() {
-  const { clients, toggleClient } = useDemo();
+  const { clients, toggleClient, reload } = useDemo();
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
   const [confirm, setConfirm] = useState<number | null>(null);
   return (
     <>
       <div className="demo-callout">
-        Cuentas creadas por administración, sin registro público. Los controles
-        de esta vista son una simulación de interfaz y no reemplazan Auth ni
-        RLS.
+        {demoMode
+          ? "Cuentas de demostración sin registro público. Esta vista visual no reemplaza Auth ni RLS."
+          : "Cuentas de compradores gestionadas mediante servicio de servidor. La habilitación no sustituye el vínculo cuenta–cliente."}
       </div>
+      {message && (
+        <p className="demo-callout" role="status">
+          {message}
+        </p>
+      )}
       <Panel title="Accesos de compradores">
         <div className="table-scroll">
           <table>
@@ -843,9 +661,35 @@ export function Accounts() {
                     </Badge>
                   </td>
                   <td>
+                    {!demoMode && !c.accountId && (
+                      <button
+                        className="table-action"
+                        disabled={busy}
+                        onClick={async () => {
+                          setBusy(true);
+                          try {
+                            await createBuyerAccount(c.id, c.email);
+                            await reload();
+                            setMessage(
+                              "Cuenta creada y vinculada. El comprador puede solicitar recuperación desde el ingreso.",
+                            );
+                          } catch (error) {
+                            setMessage(errorMessage(error));
+                          } finally {
+                            setBusy(false);
+                          }
+                        }}
+                      >
+                        Crear cuenta segura
+                      </button>
+                    )}
                     <button
                       className="table-action"
-                      disabled={c.lot === "Sin asignar"}
+                      disabled={
+                        busy ||
+                        c.lot === "Sin asignar" ||
+                        (!demoMode && !c.accountId)
+                      }
                       onClick={() => setConfirm(c.id)}
                     >
                       {c.enabled ? "Deshabilitar" : "Habilitar"} acceso
@@ -865,9 +709,17 @@ export function Accounts() {
           </p>
           <button
             className="dash-button"
-            onClick={() => {
-              toggleClient(confirm);
-              setConfirm(null);
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true);
+              try {
+                await toggleClient(confirm);
+                setConfirm(null);
+              } catch (error) {
+                setMessage(errorMessage(error));
+              } finally {
+                setBusy(false);
+              }
             }}
           >
             Confirmar cambio

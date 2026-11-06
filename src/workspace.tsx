@@ -2,6 +2,9 @@ import { useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { Brand } from "./components";
 import { useDemo } from "./demo-data";
+import { useAuth } from "./features/auth/AuthProvider";
+import { demoMode } from "./integrations/supabase/client";
+import { DataStatus } from "./shared/DataStatus";
 import { Empty } from "./workspace-ui";
 import {
   AdminOverview,
@@ -93,7 +96,9 @@ export function Workspace({ admin }: { admin: boolean }) {
   const links = admin ? adminLinks : clientLinks;
   const title =
     links.find(([path]) => path === page)?.[2] ?? "Página no encontrada";
-  const { clients } = useDemo();
+  const { currentClient, loading, error } = useDemo();
+  const auth = useAuth();
+  if (loading || error) return <DataStatus />;
   return (
     <div className="workspace">
       <aside className={`sidebar ${menu ? "expanded" : ""}`}>
@@ -120,8 +125,16 @@ export function Workspace({ admin }: { admin: boolean }) {
             <br />
             <em>lo que viene.</em>
           </div>
-          <Link to={admin ? "/cliente" : "/admin"}>⇄ Cambiar vista demo</Link>
-          <Link to="/acceso">← Salir de la demo</Link>
+          {demoMode && (
+            <Link to={admin ? "/cliente" : "/admin"}>⇄ Cambiar vista demo</Link>
+          )}
+          {demoMode ? (
+            <Link to="/acceso">← Salir de la demo</Link>
+          ) : (
+            <button className="table-action" onClick={() => void auth.logout()}>
+              Cerrar sesión
+            </button>
+          )}
           <Link to="/">Ver sitio público ↗</Link>
         </div>
       </aside>
@@ -142,17 +155,25 @@ export function Workspace({ admin }: { admin: boolean }) {
             </span>
           </span>
           <div className="profile-chip">
-            <span className="avatar">{admin ? "AD" : "LF"}</span>
+            <span className="avatar">
+              {admin ? "AD" : currentClient?.name.slice(0, 2).toUpperCase()}
+            </span>
             <div>
-              <strong>{admin ? "Administración" : "Lucía Fernández"}</strong>
-              <small>{admin ? "Vista del equipo" : "Compradora · H-012"}</small>
+              <strong>
+                {admin
+                  ? "Administración"
+                  : (currentClient?.name ?? "Comprador")}
+              </strong>
+              <small>{admin ? "Vista del equipo" : currentClient?.lot}</small>
             </div>
           </div>
         </header>
         <div className="workspace-content">
           <div className="demo-ribbon">
-            <span>DEMO INTERACTIVA</span> Datos y porcentajes ficticios ·
-            Cambios temporales hasta recargar · Fecha de referencia: 05/11/2026
+            <span>{demoMode ? "DEMO INTERACTIVA" : "ENTORNO CONECTADO"}</span>{" "}
+            {demoMode
+              ? "Datos ficticios · Cambios temporales hasta recargar · Fecha de referencia: 05/11/2026"
+              : "Datos autorizados de demostración · Persistencia Supabase"}
           </div>
           <div className="page-heading">
             <div>
@@ -164,7 +185,7 @@ export function Workspace({ admin }: { admin: boolean }) {
                   ? title
                   : admin
                     ? "Una mirada a tu gestión."
-                    : "Hola, Lucía."}
+                    : `Hola, ${currentClient?.name.split(" ")[0] ?? "comprador"}.`}
               </h1>
               <p>
                 {admin
@@ -174,7 +195,7 @@ export function Workspace({ admin }: { admin: boolean }) {
             </div>
             <span className="date-label">Jueves, 5 de noviembre de 2026</span>
           </div>
-          {!admin && !clients.find((c) => c.id === 1)?.enabled ? (
+          {!admin && !currentClient?.enabled ? (
             <Empty text="Cuenta demo deshabilitada. Podés volver a habilitarla desde Administración → Cuentas de acceso." />
           ) : admin ? (
             <AdminPage page={page} />

@@ -1,15 +1,57 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { money, useDemo } from "./demo-data";
-import { properties } from "./properties";
-import { Badge, Metric, Panel, Empty, PlanDetails } from "./workspace-ui";
+import { money } from "./demo-data";
+import { Badge, Metric, Panel, Empty } from "./workspace-ui";
+import { useBuyerPlan } from "./features/installments/useBuyerPlan";
+import { demoMode } from "./integrations/supabase/client";
+import { useAuth } from "./features/auth/AuthProvider";
 
+function ContractSelector({ data }: { data: ReturnType<typeof useBuyerPlan> }) {
+  return (
+    <div className="action-row">
+      <label className="search-field">
+        Contrato
+        <select
+          value={data.contract?.id ?? ""}
+          onChange={(e) => data.setSelected(Number(e.target.value))}
+        >
+          {data.contracts.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.reference}
+            </option>
+          ))}
+        </select>
+      </label>
+      {data.plans.length > 1 && (
+        <label className="search-field">
+          Plan
+          <select
+            value={data.plan?.id ?? ""}
+            onChange={(e) => data.setSelectedPlan(Number(e.target.value))}
+          >
+            {data.plans.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+    </div>
+  );
+}
 export function ClientOverview() {
-  const { payments } = useDemo();
-  const paid = payments.filter((p) => p.client === 1 && !p.voided).length;
-  const total = 6000 + paid * 500;
+  const data = useBuyerPlan();
+  const { contract, installments, total, registered, lots, properties } = data;
+  if (!contract)
+    return (
+      <Empty text="No hay contratos vinculados a tu cuenta. Contactá a administración." />
+    );
+  const settled = installments.filter((i) => i.settled).length;
+  const next = installments.find((i) => !i.settled);
   return (
     <>
+      <ContractSelector data={data} />
       <div className="client-welcome">
         <div>
           <Badge>Tu proyecto está en marcha</Badge>
@@ -18,184 +60,201 @@ export function ClientOverview() {
             <br />
             de tu <em>lugar.</em>
           </h2>
-          <p>Horizonte · Lote H-012 · Contrato CR-2026-001</p>
+          <p>
+            {lots} · {contract.reference}
+          </p>
           <Link className="dash-button" to="/cliente/lote">
             Conocer mi lote ↗
           </Link>
         </div>
         <div
           className="welcome-photo"
+          style={
+            properties[0]?.image
+              ? { backgroundImage: "url(" + properties[0].image + ")" }
+              : undefined
+          }
           role="img"
-          aria-label="Paisaje de referencia del desarrollo"
+          aria-label="Paisaje de referencia"
         />
       </div>
       <div className="metrics">
         <Metric
           label="Valor del contrato demo"
-          value={money(30000)}
+          value={money(contract.total)}
           detail="Moneda: USD"
         />
         <Metric
           label="Aportes registrados demo"
           value={money(total)}
-          detail={`Anticipo + ${paid} cuotas activas`}
+          detail={"Anticipo + " + settled + " cuotas cubiertas"}
         />
         <Metric
           label="Pendiente del plan demo"
-          value={money(30000 - total)}
-          detail="Ejemplo aritmético sin intereses"
+          value={money(Math.max(0, contract.total - total))}
+          detail="Escenario aritmético sin intereses"
         />
         <Metric
           label="Cuotas registradas"
-          value={`${paid} / 48`}
-          detail="Plan ficticio de USD 500 por cuota"
+          value={settled + " / " + installments.length}
+          detail="Cuotas cubiertas según imputaciones"
         />
       </div>
       <div className="dashboard-grid">
         <Panel title="El recorrido de tu proyecto">
           <div className="progress-summary">
-            <strong>{Math.round((total / 30000) * 100)}%</strong>
-            <span>del valor del ejemplo registrado</span>
+            <strong>{Math.round((total / contract.total) * 100)}%</strong>
+            <span>del valor del escenario registrado</span>
           </div>
           <progress
-            value={total}
-            max={30000}
-            aria-label="Avance de aportes del ejemplo"
+            value={Math.min(total, contract.total)}
+            max={contract.total}
+            aria-label="Avance de aportes"
           />
           <div className="progress-labels">
             <span>{money(total)} registrados</span>
-            <span>{money(30000)} total</span>
+            <span>{money(contract.total)} total</span>
           </div>
           <div className="milestones">
-            <span>✓ Anticipo · 20%</span>
-            <span>◷ Plan en curso · 80%</span>
-            <span>○ Finalización del plan</span>
+            <span>Anticipo registrado: {money(contract.deposit)}</span>
+            <span>Cuotas: {money(registered)}</span>
           </div>
         </Panel>
         <Panel title="Tu próxima cuota">
-          {paid >= 48 ? (
-            <Empty text="Todas las cuotas del ejemplo están registradas." />
-          ) : (
+          {next ? (
             <>
               <div className="next-payment">
                 <span>
-                  Cuota{" "}
-                  {String(
-                    Array.from({ length: 48 }, (_, i) => i + 1).find(
-                      (n) =>
-                        !payments.some(
-                          (p) =>
-                            p.client === 1 && p.installment === n && !p.voided,
-                        ),
-                    ),
-                  ).padStart(2, "0")}{" "}
-                  / 48
+                  Cuota {next.number} / {installments.length}
                 </span>
-                <strong>{money(500)}</strong>
-                <Badge tone="amber">Vencimiento de ejemplo · 10/11/2026</Badge>
+                <strong>{money(next.remaining)}</strong>
+                <Badge tone="amber">
+                  Vencimiento registrado · {next.due_on}
+                </Badge>
               </div>
               <p className="muted">
-                Los pagos se registran manualmente por la administración. Este
-                portal no procesa pagos online.
+                Los pagos son registrados manualmente por administración. Sin
+                pagos online.
               </p>
               <Link className="table-action" to="/cliente/cuotas">
                 Ver todas mis cuotas →
               </Link>
             </>
+          ) : (
+            <Empty text="Todas las cuotas del plan están cubiertas." />
           )}
         </Panel>
       </div>
       <p className="demo-callout">
-        Los saldos y el avance representan únicamente el ejemplo de diseño
-        autorizado: USD 30.000, anticipo del 20% y 48 cuotas sin intereses. No
-        son reglas financieras productivas.
+        Datos de demostración. Aportes y pendiente se muestran únicamente para
+        el escenario contractual cargado; no incluyen reglas de intereses, mora
+        ni refinanciación.
       </p>
     </>
   );
 }
-
 export function ClientLot() {
+  const data = useBuyerPlan();
+  const { contract, currentClient, lots } = data;
+  if (!contract) return <Empty text="No hay contratos asociados." />;
   return (
     <>
+      <ContractSelector data={data} />
       <div className="dashboard-grid">
-        <Panel title="Horizonte · Tu lugar">
-          <div className="client-lot-image">
-            <img
-              src={properties[0].image}
-              alt="Paisaje de referencia del desarrollo Horizonte"
-            />
-            <span>Imagen ilustrativa</span>
-          </div>
+        <Panel title="Tu lugar">
           <div className="lot-identification">
-            <h2>Lote H-012</h2>
-            <Badge>Adjudicado · Demo</Badge>
+            <h2>Lote {lots}</h2>
+            <Badge>Contrato demo</Badge>
           </div>
           <dl className="detail-list">
             <div>
-              <dt>Superficie ficticia</dt>
-              <dd>300 m²</dd>
-            </div>
-            <div>
-              <dt>Manzana</dt>
-              <dd>A · Demo</dd>
-            </div>
-            <div>
-              <dt>Titular del ejemplo</dt>
-              <dd>Lucía Fernández</dd>
+              <dt>Titular autorizado</dt>
+              <dd>{currentClient?.name}</dd>
             </div>
             <div>
               <dt>Contrato</dt>
-              <dd>CR-2026-001</dd>
+              <dd>{contract.reference}</dd>
             </div>
+            <div>
+              <dt>Fecha registrada</dt>
+              <dd>{contract.signed_on}</dd>
+            </div>
+            {data.lots &&
+              data.lots.split(", ").map((id) => {
+                const lot = data.contractLots.find((l) => l.lot_id === id);
+                return (
+                  <div key={id}>
+                    <dt>Lote vinculado</dt>
+                    <dd>{lot?.lot_id}</dd>
+                  </div>
+                );
+              })}
           </dl>
         </Panel>
         <Panel title="Tu plan, con claridad">
-          <PlanDetails />
+          <dl className="detail-list">
+            <div>
+              <dt>Valor del lote</dt>
+              <dd>{money(contract.total)}</dd>
+            </div>
+            <div>
+              <dt>Anticipo registrado</dt>
+              <dd>{money(contract.deposit)}</dd>
+            </div>
+            <div>
+              <dt>Capital del escenario</dt>
+              <dd>{money(contract.total - contract.deposit)}</dd>
+            </div>
+            <div>
+              <dt>Plan seleccionado</dt>
+              <dd>{data.plan?.label ?? "Sin plan"}</dd>
+            </div>
+            <div>
+              <dt>Cuotas cargadas</dt>
+              <dd>{data.installments.length}</dd>
+            </div>
+          </dl>
           <Link className="dash-button" to="/cliente/cuotas">
             Consultar mis cuotas ↗
           </Link>
         </Panel>
       </div>
       <Panel title="Información contractual">
-        <div className="contract-summary">
-          <span className="document-icon">▤</span>
-          <div>
-            <strong>Contrato de demostración CR-2026-001</strong>
-            <p>
-              Inicio ilustrativo: 01/03/2026 · Compradora: Lucía Fernández.
-              Documento pendiente de integración; esta ficha no constituye un
-              contrato firmado.
-            </p>
-          </div>
-          <Badge tone="neutral">Solo lectura</Badge>
-        </div>
+        <p className="muted">
+          Escenario ficticio cargado para demostración. Esta ficha no es un
+          contrato firmado. Un cliente puede tener más de un contrato y cada
+          contrato puede vincular varios lotes; son supuestos técnicos de demo
+          pendientes de aprobación productiva.
+        </p>
       </Panel>
     </>
   );
 }
-
 export function Installments() {
-  const { payments } = useDemo();
+  const data = useBuyerPlan();
   const [filter, setFilter] = useState("Todas");
   const [message, setMessage] = useState("");
-  const count = payments.filter((p) => p.client === 1 && !p.voided).length;
+  if (!data.contract)
+    return <Empty text="No hay un plan asociado a tu cuenta." />;
+  const count = data.installments.filter((i) => i.settled).length;
   return (
     <>
+      <ContractSelector data={data} />
       <div className="metrics three">
         <Metric
           label="Cuotas registradas"
           value={String(count).padStart(2, "0")}
-          detail={money(count * 500) + " del plan"}
+          detail={money(data.registered) + " imputados al plan"}
         />
         <Metric
           label="Cuotas pendientes"
-          value={String(48 - count)}
-          detail="Sin intereses ni recargos en el ejemplo"
+          value={String(data.installments.length - count)}
+          detail="Sin intereses ni recargos"
         />
         <Metric
-          label="Importe por cuota"
-          value={money(500)}
-          detail="48 cuotas · Moneda USD"
+          label="Plan"
+          value={String(data.installments.length) + " cuotas"}
+          detail={data.plan?.label ?? ""}
         />
       </div>
       <div className="filter-tabs">
@@ -217,76 +276,77 @@ export function Installments() {
       )}
       <Panel
         title="Tu plan de cuotas"
-        action={<Badge tone="neutral">CR-2026-001</Badge>}
+        action={<Badge tone="neutral">{data.contract.reference}</Badge>}
       >
         <div className="table-scroll">
           <table>
             <thead>
               <tr>
                 <th>Cuota</th>
-                <th>Vencimiento demo</th>
+                <th>Vencimiento</th>
                 <th>Importe</th>
+                <th>Imputado</th>
                 <th>Estado</th>
                 <th />
               </tr>
             </thead>
             <tbody>
-              {Array.from({ length: 48 }, (_, i) => i + 1)
+              {data.installments
                 .filter(
-                  (n) =>
+                  (i) =>
                     filter === "Todas" ||
-                    (payments.some(
-                      (p) => p.client === 1 && p.installment === n && !p.voided,
-                    )
+                    (i.settled
                       ? filter === "Registradas"
                       : filter === "Pendientes"),
                 )
-                .map((n) => {
-                  const paid = payments.some(
-                    (p) => p.client === 1 && p.installment === n && !p.voided,
-                  );
-                  const date = new Date(Date.UTC(2026, n + 1, 10));
-                  return (
-                    <tr key={n}>
-                      <td>
-                        <strong>{String(n).padStart(2, "0")} / 48</strong>
-                      </td>
-                      <td>
-                        {date.toLocaleDateString("es-AR", { timeZone: "UTC" })}
-                      </td>
-                      <td>{money(500)}</td>
-                      <td>
-                        <Badge
-                          tone={paid ? "green" : n === 9 ? "amber" : "neutral"}
+                .map((i) => (
+                  <tr key={i.id}>
+                    <td>
+                      <strong>
+                        {String(i.number).padStart(2, "0")} /{" "}
+                        {data.installments.length}
+                      </strong>
+                    </td>
+                    <td>{i.due_on}</td>
+                    <td>{money(i.amount)}</td>
+                    <td>{money(i.paid)}</td>
+                    <td>
+                      <Badge
+                        tone={
+                          i.settled
+                            ? "green"
+                            : i.demo_state === "A vencer"
+                              ? "amber"
+                              : "neutral"
+                        }
+                      >
+                        {i.settled
+                          ? "Registrada"
+                          : i.paid > 0
+                            ? "Pago parcial"
+                            : i.demo_state}
+                      </Badge>
+                    </td>
+                    <td>
+                      {i.paid > 0 ? (
+                        <Link className="table-action" to="/cliente/pagos">
+                          Ver pago ↗
+                        </Link>
+                      ) : (
+                        <button
+                          className="table-action"
+                          onClick={() =>
+                            setMessage(
+                              "Los pagos deben registrarse por administración. No hay pagos online.",
+                            )
+                          }
                         >
-                          {paid
-                            ? "Registrada"
-                            : n === 9
-                              ? "A vencer · demo"
-                              : "Pendiente"}
-                        </Badge>
-                      </td>
-                      <td>
-                        {paid ? (
-                          <Link className="table-action" to="/cliente/pagos">
-                            Ver pago ↗
-                          </Link>
-                        ) : (
-                          <button
-                            className="table-action"
-                            onClick={() =>
-                              setMessage(
-                                `Cuota ${n}: el pago debe ser registrado por administración. No hay pagos online en esta demo.`,
-                              )
-                            }
-                          >
-                            Información
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
+                          Información
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
@@ -294,63 +354,74 @@ export function Installments() {
     </>
   );
 }
-
 export function ClientProfile() {
+  const data = useBuyerPlan();
+  const auth = useAuth();
   const [recovery, setRecovery] = useState(false);
+  const client = data.currentClient;
   return (
     <div className="dashboard-grid">
       <Panel title="Tus datos">
         <div className="profile-large">
-          <span className="avatar">LF</span>
+          <span className="avatar">{client?.name.slice(0, 2)}</span>
           <div>
-            <h2>Lucía Fernández</h2>
-            <Badge>Compradora de demostración</Badge>
+            <h2>{client?.name ?? "Sin vínculo"}</h2>
+            <Badge>Comprador autorizado</Badge>
           </div>
         </div>
         <dl className="detail-list">
           <div>
             <dt>Correo</dt>
-            <dd>lucia@example.com</dd>
+            <dd>{client?.email}</dd>
           </div>
           <div>
             <dt>Identificador</dt>
-            <dd>CLI-DEMO-001</dd>
+            <dd>{client?.id}</dd>
           </div>
           <div>
-            <dt>Lote vinculado</dt>
-            <dd>H-012</dd>
+            <dt>Lotes vinculados</dt>
+            <dd>{client?.lot}</dd>
           </div>
           <div>
             <dt>Cuenta</dt>
-            <dd>Habilitada por administración</dd>
+            <dd>{client?.enabled ? "Habilitada" : "Deshabilitada"}</dd>
           </div>
         </dl>
-        <p className="muted">
-          Para corregir tus datos o vínculos contractuales, comunicate con la
-          administración cuando estén habilitados los canales.
-        </p>
       </Panel>
       <Panel title="Seguridad y acceso">
         <h3>Tu espacio, tu información.</h3>
-        <p className="muted">
-          En el sistema integrado, accederás con email y contraseña. La demo
-          permite explorar vistas sin una sesión real.
-        </p>
-        <button
-          className="dash-button secondary"
-          onClick={() => setRecovery(true)}
-        >
-          Ver recuperación de acceso
-        </button>
-        {recovery && (
-          <div className="demo-callout" role="status">
-            La recuperación de contraseña se conectará a Supabase Auth y correo
-            transaccional. No se envió ningún correo.
-          </div>
+        <p className="muted">Las cuentas son habilitadas por administración.</p>
+        {demoMode ? (
+          <>
+            <button
+              className="dash-button secondary"
+              onClick={() => setRecovery(true)}
+            >
+              Ver recuperación de acceso
+            </button>
+            {recovery && (
+              <div className="demo-callout" role="status">
+                La vista visual no envía correos. Usá el modo Supabase para
+                autenticación real.
+              </div>
+            )}
+            <Link className="table-action profile-exit" to="/acceso">
+              Salir de la vista de demostración →
+            </Link>
+          </>
+        ) : (
+          <>
+            <Link className="dash-button secondary" to="/acceso">
+              Recuperar acceso
+            </Link>
+            <button
+              className="table-action profile-exit"
+              onClick={() => void auth.logout()}
+            >
+              Cerrar sesión
+            </button>
+          </>
         )}
-        <Link className="table-action profile-exit" to="/acceso">
-          Salir de la vista de demostración →
-        </Link>
       </Panel>
     </div>
   );

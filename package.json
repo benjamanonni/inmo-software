@@ -4,23 +4,51 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --host 127.0.0.1",
+    "dev": "vite --host 127.0.0.1 --mode demo",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview --host 127.0.0.1",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "dev:live": "vite --host 127.0.0.1 --mode development",
+    "test:sql": "node --test tests/sql/*.test.mjs",
+    "lint": "eslint .",
+    "test:unit": "node --experimental-strip-types --test tests/unit/*.test.ts tests/unit/*.test.mjs",
+    "test:live": "node --env-file=.env.integration.local --test tests/live/*.test.mjs",
+    "seed:auth": "node --env-file=.env.integration.local scripts/seed-auth.mjs",
+    "export:demo": "node automation/n8n/export-demo.mjs",
+    "test:connected-ui": "playwright test --config playwright.connected.config.ts",
+    "types:generate": "node scripts/generate-types.mjs",
+    "test:live-browser": "node --env-file=.env.integration.local node_modules/@playwright/test/cli.js test --config playwright.integration.config.ts",
+    "local:start": "node scripts/start-local.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.119.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "react-router-dom": "7.18.5"
+    "react-router-dom": "7.18.5",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.15",
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.65.0",
+    "@types/node": "^26.6.6",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.2.1",
-    "typescript": "7.0.2",
+    "eslint": "^10.14.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "exceljs": "^4.4.0",
+    "globals": "^17.14.0",
+    "supabase": "3.0.0",
+    "typescript": "~6.0.0",
+    "typescript-eslint": "^8.72.1",
     "vite": "8.3.6"
+  },
+  "overrides": {
+    "minimatch": "^11.0.1",
+    "exceljs": {
+      "uuid": "^11.1.1"
+    }
   }
 }

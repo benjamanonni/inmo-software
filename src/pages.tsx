@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
 import { Contact, PropertyCard } from "./components";
-import { properties } from "./properties";
+import { DataStatus } from "./shared/DataStatus";
 import { useDemo } from "./demo-data";
 import type { Property } from "./properties";
 
 export function Home() {
-  const { published } = useDemo();
+  const { published, properties, loading, error } = useDemo();
+  if (loading || error) return <DataStatus />;
   return (
     <>
       <section className="homehero photo">
@@ -79,6 +80,11 @@ export function Home() {
               Explorar el catálogo <span className="arrow">↗</span>
             </Link>
           </div>
+          {!published.some(Boolean) && (
+            <p className="demo-callout">
+              No hay propiedades publicadas en este momento.
+            </p>
+          )}
           <div className="project-cards">
             {properties.map((property, index) =>
               published[index] ? (
@@ -160,7 +166,8 @@ export function Home() {
 }
 
 export function Catalog() {
-  const { published } = useDemo();
+  const { published, properties, loading, error } = useDemo();
+  if (loading || error) return <DataStatus />;
   return (
     <>
       <section className="catalog-intro container">

@@ -1,0 +1,48 @@
+name: Crook checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  local-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      - run: npm run test:unit
+      - run: npm run test:sql
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - run: npm run test:connected-ui
+      - run: npm audit --audit-level=high
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-test-results
+          path: test-results/
+          retention-days: 7
+  supabase-isolated:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Start disposable local Supabase
+        run: npx supabase start > "$RUNNER_TEMP/crook-supabase-start.log" 2>&1
+      - run: node scripts/local-test-env.mjs
+      - run: npm run seed:auth
+      - run: npm run test:live
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:live-browser
+      - name: Stop isolated services without deleting data
+        if: always()
+        run: npx supabase stop
