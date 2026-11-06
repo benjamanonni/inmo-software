@@ -1,21 +1,21 @@
-# Cobertura inicial y verificación prevista
+# Cobertura de requisitos — 06/11/2026
 
-Fuente: Requisitos v43, Alcance v22, Trazabilidad v15 y Diccionario EDT v18. Fecha: 05/11/2026. No hay pruebas de aplicación ejecutadas. Los identificadores E2E corresponden al prompt del usuario, no a tests existentes.
+Confluence conserva la autoridad de los requisitos formales. Esta matriz registra evidencia de la implementación ficticia, sin modificar aprobaciones ni convertir supuestos de demo en reglas productivas. Fuente inicial: Requisitos v43, Alcance v22, Trazabilidad v15 y Diccionario EDT v18.
 
-| Código | Requisito/módulo | EDT de referencia | Estado | Prueba prevista | Evidencia actual |
-| --- | --- | --- | --- | --- | --- |
-| RF-01 | Catálogo sin precios ni formulario de contacto | 1.3.1.1.1–1.3.1.2.1 | NO INICIADA | E2E-01/08 y comprobación de campos públicos | Carpeta inicialmente vacía |
-| RF-02 | Login, sesión y recuperación | 1.3.2.1.1/2 | NO INICIADA | E2E-02/07; expiración y cierre de sesión | Sin Auth configurado |
-| RF-03 | Portal propio y visor de comprobantes | 1.3.2.2.1–1.3.2.3.1 | NO INICIADA | E2E-02/03; URL de comprobante ajeno denegada | Sin frontend, datos ni Storage |
-| RF-04 | Administración de clientes, contratos, planes y pagos | 1.3.3.1.1/2; 1.3.3.3.1 | NO INICIADA | E2E-04; persistencia tras recarga y rechazo comprador | Sin implementación |
-| RF-05 | Al día / A vencer / Vencidas | 1.3.3.4.1 | NO INICIADA | Estados ficticios controlados; verificar etiqueta de demo | Criterios financieros pendientes |
-| RF-06 | Edición y publicación de propiedades | 1.3.3.2.1/2 | NO INICIADA | E2E-01/08; retirar acceso a fotos al despublicar | Sin persistencia |
-| RF-07 | Alta administrativa y vínculo cuenta–cliente | 1.3.3.5.1/2 | NO INICIADA | Anónimo/comprador no pueden crear o alterar vínculos | Sin función privilegiada |
-| RF-08 | Trazabilidad de correcciones/anulaciones | 1.3.3.3.2; 1.2.2.4 | NO INICIADA | E2E-05; rollback, concurrencia y ausencia de borrado | Sin tablas ni RPC |
-| RNF-01 | Operación sin bloqueos | Pruebas transversales | NO INICIADA | Recorrer operaciones con cargas de prueba documentadas | Sin ejecución; sin umbral arbitrario |
-| RNF-02 | Responsive y compatibilidad | 1.2.3; 1.3.4 | NO INICIADA | Desktop/móvil, teclado y estados de formularios | Diseño de referencia sin identificar |
-| RNF-03 | Seguridad de aplicación | 1.4.2; pruebas de seguridad | NO INICIADA | Entradas inválidas, roles, npm audit, ZAP autorizado | Sin dependencias ni entorno web |
-| RNF-04 | Aislamiento | 1.4.2.1/2 | NO INICIADA | E2E-03 y SQL con anónimo, A, B y administrador | Sin RLS probada |
-| RNF-05 | Exportación tabular diaria XLSX | 1.4.5.1/2 | NO INICIADA | E2E-06; abrir archivo, validar contenido y destino privado | Sin n8n ejecutado |
+| Código | Cobertura actual | Evidencia/limitación |
+| --- | --- | --- |
+| RF-01 | Catálogo online sin precios ni formulario de contacto | Navegador sobre Preview: catálogo, detalle directo, fotos, móvil. Contactos todavía no configurados se identifican en la UI |
+| RF-02 | Login, logout, sesión persistente y roles online | Admin/comprador/deshabilitada y recarga verificados; recuperación por correo externo pendiente SMTP |
+| RF-03 | Portal propio y comprobante privado online | Contratos A/B aislados por RLS, bucket privado, URL firmada y visor de comprador |
+| RF-04 | Clientes, contratos, cuotas y pagos online | Recorrido de todas las vistas de admin; alta Edge; registro/anulación desde UI y persistencia al recargar |
+| RF-05 | Estados por fecha y ventana demo de cinco días | Unitarias de límites, fecha Buenos Aires y pantalla de morosidad; sin cálculo productivo de punitorios |
+| RF-06 | Edición/publicación y fotos persistentes | Publicar/despublicar probado en Cloud; catálogo/fotos online; cobertura local SQL y Storage de retiro de visibilidad |
+| RF-07 | Alta administrativa y vínculo único | Edge real: comprador 403, admin alta y duplicado 409; una cuenta por cliente y un cliente por cuenta |
+| RF-08 | Anulación con historia inmutable | Pago/idempotencia/anulación e importe original verificados en Cloud y UI; borrado rechazado; concurrencia en Supabase local |
+| RNF-01 | Recorridos funcionales verificados | Sin prueba de carga ni umbrales operativos aprobados |
+| RNF-02 | Desktop/móvil | E2E locales y navegación móvil real en URL pública |
+| RNF-03 | Controles implementados y probados | npm audit sin vulnerabilidades en la instalación; noindex/nosniff/frame denial; build guard y revisión de bundle; no es certificación |
+| RNF-04 | Aislamiento real | 15 tablas con RLS; comprador A/B, anónimo, deshabilitado y RPC/Storage negativos contra Cloud sin desactivar políticas |
+| RNF-05 | Exportación parcial: local PostgreSQL→XLSX | n8n local verificado con cuatro columnas. Cloud/Drive y ejecución diaria pendientes; no confundir XLSX diario con actualizar Sheets |
 
-La trazabilidad propuesta deberá completarse con nombres de archivos, tests y evidencias reales al implementar cada incremento. Ninguna fila cambia a IMPLEMENTADA Y VERIFICADA por generar código o documentación.
+Web: https://crook-demo-online-preview.vercel.app. Los comandos y la separación entre evidencia local/cloud/pública están en [deployment.md](deployment.md). Pruebas online explícitas en `tests/online`, API cloud en `scripts/verify-cloud-demo.mjs`, SQL/local en sus suites correspondientes. No se publicaron credenciales de prueba ni se conectaron datos reales.

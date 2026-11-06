@@ -193,7 +193,14 @@ export function Workspace({ admin }: { admin: boolean }) {
                   : "Este es el estado de tu próximo gran comienzo."}
               </p>
             </div>
-            <span className="date-label">Jueves, 5 de noviembre de 2026</span>
+            <span className="date-label">
+              {demoMode
+                ? "Jueves, 5 de noviembre de 2026"
+                : new Intl.DateTimeFormat("es-AR", {
+                    dateStyle: "full",
+                    timeZone: "America/Argentina/Buenos_Aires",
+                  }).format(new Date())}
+            </span>
           </div>
           {!admin && !currentClient?.enabled ? (
             <Empty text="Cuenta demo deshabilitada. Podés volver a habilitarla desde Administración → Cuentas de acceso." />

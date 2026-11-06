@@ -1,12 +1,12 @@
 # Entorno local instalado y verificado — 05/11/2026
 
-Esta actualización sustituye los bloqueos de instalación descritos en el informe inicial full-stack.md. Se trabajó en `codex/full-stack-demo`; `main` conserva la demo anterior. No hubo push, despliegue externo, compra ni cambios productivos.
+Este documento conserva evidencia de la instalación local del 05/11. Actualización 06/11: la demo anterior fue incorporada a main por el propietario; se publicaron cambios en codex/despliegue-demo-online y un Preview conectado a Supabase Cloud. Estado vigente, pruebas online y pendientes en [deployment.md](deployment.md). No se contrataron planes pagos ni se afectaron sistemas operativos.
 
 ## Instalación
 
 - WSL 2.7.14.0 y kernel 6.18.33.2, instalador Microsoft con firma y SHA256 verificados.
 - Docker Desktop 4.98.0 para el usuario actual, backend WSL 2. Docker Engine 29.9.2 y Compose 5.6.1 responden correctamente.
-- Supabase CLI 3.0.0: stack local `crook-demo`, cuatro migraciones y seed aplicados; volúmenes persistentes.
+- Supabase CLI 3.0.0: stack local `crook-demo`, seis migraciones y seed aplicados; volúmenes persistentes.
 - n8n 2.46.6 en Docker, persistencia en volumen y puerto publicado solamente en 127.0.0.1.
 
 Se activaron VirtualMachinePlatform y Microsoft-Windows-Subsystem-Linux mediante elevación de Windows. El segundo componente devolvió código 3010 (reinicio pendiente). Docker y WSL 2 ya funcionan sin reiniciar; no se reinició el equipo automáticamente. Conviene completar ese reinicio cuando el usuario haya guardado su trabajo.
@@ -39,7 +39,7 @@ Usuarios ficticios principales: `admin@crook.example` y `lucia@example.com`. Las
 | Integración | Estado | Evidencia |
 | --- | --- | --- |
 | Docker / Compose / WSL 2 | IMPLEMENTADA Y VERIFICADA | Cliente y servidor Docker Linux responden, contenedores sanos |
-| Migraciones y persistencia Supabase | IMPLEMENTADA Y VERIFICADA | Cuatro migraciones, seed, usuarios y pagos cargados; datos conservados tras detener/arrancar el stack sin borrar volúmenes |
+| Migraciones y persistencia Supabase | IMPLEMENTADA Y VERIFICADA | Seis migraciones, seed, usuarios y pagos cargados; datos conservados tras detener/arrancar el stack sin borrar volúmenes |
 | Auth y RLS | IMPLEMENTADA Y VERIFICADA localmente | Login real A/B, cuenta deshabilitada sin datos, comprador no puede modificar roles ni registrar pagos administrativos |
 | Pagos auditables | IMPLEMENTADA Y VERIFICADA localmente | Idempotencia, historial, anulación concurrente con un solo resultado exitoso y conservación del importe original |
 | Storage privado | IMPLEMENTADA Y VERIFICADA localmente | Upload de comprobante ficticio; URL firmada permitida para A, denegada para B y anónimo |
@@ -48,12 +48,12 @@ Usuarios ficticios principales: `admin@crook.example` y `lucia@example.com`. Las
 | Recuperación / SMTP local | VERIFICACIÓN PARCIAL | Solicitud aceptada y correo ficticio recibido en Mailpit. No se cambió contraseña ni se probó Resend externo |
 | n8n, rama manual ficticia | IMPLEMENTADA Y VERIFICADA | Importado y ejecutado en n8n 2.46.6; estado success, último nodo Resultado manual binario |
 | XLSX generado por n8n | IMPLEMENTADA Y VERIFICADA | Archivo real recuperado del volumen y reabierto con ExcelJS: 2 filas, 16.460 bytes. SHA256 98cf8da65862b90b4412b7a862e456f7d6dd4145b98ba346f5929dadc1d36041 |
-| n8n PostgreSQL / Drive / programación | PENDIENTE | Falta validar datos exportados, credencial de lectura, carpeta privada, horario y retención. Workflow sigue inactivo, sin envíos a Drive |
-| Vercel Preview / GitHub Actions remoto | PENDIENTE | Configuración preparada; no se publicaron commits ni se desplegó una URL |
+| n8n PostgreSQL local | IMPLEMENTADA Y VERIFICADA | Workflow real, vista limitada, ocho filas XLSX verificadas; fallo de conexión registrado. Drive y programación pendientes |
+| Vercel Preview | IMPLEMENTADA Y VERIFICADA | https://crook-demo-online-preview.vercel.app; Cloud aislado. GitHub Actions: consultar SHA vigente del PR |
 
-Pruebas reproducibles nuevas: `npm run test:live` (2 pruebas HTTP reales, incluyen Edge) y `npm run test:live-browser` (2 pruebas con Auth real). Esta suite usa exclusivamente el stack aislado y conserva los registros históricos que crea. Los tipos TypeScript se generaron desde el esquema local y ahora tipan el cliente SDK, además de la validación de fronteras con Zod.
+Pruebas reproducibles nuevas: `npm run test:live` (3 pruebas HTTP reales, incluyen Edge y plan ARS) y `npm run test:live-browser` (2 pruebas con Auth real). Esta suite usa exclusivamente el stack aislado y conserva los registros históricos que crea. Los tipos TypeScript se generaron desde el esquema local y ahora tipan el cliente SDK, además de la validación de fronteras con Zod.
 
-La regresión final aprobó build/typecheck, ESLint, 3 unitarias, 10 registros de pruebas SQL, 7 pruebas de demo visual y 1 de configuración conectada. Se compararon las claves privadas y contraseñas configuradas con el JavaScript público generado: no aparecen en el bundle. El build con Supabase configurado emite una advertencia no bloqueante por el chunk principal de 626 kB (178 kB gzip); la división adicional de código queda pendiente de optimización.
+La regresión final aprobó build/typecheck, ESLint, 5 unitarias, 10 registros de pruebas SQL, 7 pruebas de demo visual y 1 de configuración conectada. Se compararon las claves privadas y contraseñas configuradas con el JavaScript público generado: no aparecen en el bundle. El build con Supabase configurado emite una advertencia no bloqueante por el chunk principal de 631 kB (179 kB gzip); la división adicional de código queda pendiente de optimización.
 
 Los artefactos de ejecución y comprobación permanecen en artifacts/: n8n-result.json, n8n-verification.json, crook-n8n.xlsx, edge-verification.json y mail-verification.json. No se versionaron secretos ni logs privados.
 

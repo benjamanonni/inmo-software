@@ -22,7 +22,10 @@
     "local:start": "node scripts/start-local.mjs",
     "seed:ars": "node --env-file=.env.integration.local scripts/initialize-ars-demo.mjs",
     "n8n:configure": "node --env-file=.env.integration.local scripts/configure-n8n-postgres.mjs",
-    "n8n:verify": "node scripts/verify-n8n-postgres.mjs"
+    "n8n:verify": "node scripts/verify-n8n-postgres.mjs",
+    "test:online": "node --env-file=.env.cloud.local node_modules/@playwright/test/cli.js test --config playwright.online.config.ts",
+    "test:cloud": "node --env-file=.env.cloud.local scripts/verify-cloud-demo.mjs",
+    "verify:preview": "node scripts/verify-preview-assets.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.0",
