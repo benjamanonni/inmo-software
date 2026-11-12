@@ -6,7 +6,6 @@ import type { Property } from "./properties";
 
 export function Home() {
   const { published, properties, loading, error } = useDemo();
-  if (loading || error) return <DataStatus />;
   return (
     <>
       <section className="homehero photo">
@@ -80,14 +79,15 @@ export function Home() {
               Explorar el catálogo <span className="arrow">↗</span>
             </Link>
           </div>
-          {!published.some(Boolean) && (
+          {(loading || error) && <DataStatus inline />}
+          {!loading && !error && !published.some(Boolean) && (
             <p className="demo-callout">
               No hay propiedades publicadas en este momento.
             </p>
           )}
           <div className="project-cards">
             {properties.map((property, index) =>
-              published[index] ? (
+              !loading && !error && published[index] ? (
                 <PropertyCard
                   key={property.id}
                   property={property}
@@ -167,7 +167,6 @@ export function Home() {
 
 export function Catalog() {
   const { published, properties, loading, error } = useDemo();
-  if (loading || error) return <DataStatus />;
   return (
     <>
       <section className="catalog-intro container">
@@ -184,23 +183,29 @@ export function Catalog() {
       </section>
       <section className="developments">
         <div className="container">
-          <div className="catalog-toolbar">
-            <span className="eyebrow">Todos los desarrollos</span>
-            <span>
-              {published.filter(Boolean).length} propuestas de demostración
-            </span>
-          </div>
-          <div className="project-cards">
-            {properties.map((property, index) =>
-              published[index] ? (
-                <PropertyCard
-                  key={property.id}
-                  property={property}
-                  index={index}
-                />
-              ) : null,
-            )}
-          </div>
+          {loading || error ? (
+            <DataStatus inline />
+          ) : (
+            <>
+              <div className="catalog-toolbar">
+                <span className="eyebrow">Todos los desarrollos</span>
+                <span>
+                  {published.filter(Boolean).length} propuestas de demostración
+                </span>
+              </div>
+              <div className="project-cards">
+                {properties.map((property, index) =>
+                  published[index] ? (
+                    <PropertyCard
+                      key={property.id}
+                      property={property}
+                      index={index}
+                    />
+                  ) : null,
+                )}
+              </div>
+            </>
+          )}
           <p className="demo-disclaimer">
             Información ficticia para revisión de diseño. No representa
             inventario disponible.

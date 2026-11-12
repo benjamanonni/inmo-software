@@ -239,7 +239,14 @@
   align-items: center;
   background-image:
     linear-gradient(90deg, rgba(14, 29, 23, 0.78), rgba(14, 29, 23, 0.18) 75%),
-    url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1800&q=85");
+    url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1440&q=68&fm=webp");
+}
+@media (max-width: 600px) {
+  #crook-app .homehero {
+    background-image:
+      linear-gradient(90deg, rgba(14, 29, 23, 0.78), rgba(14, 29, 23, 0.18) 75%),
+      url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=780&q=72&fm=webp");
+  }
 }
 #crook-app .homehero .hero-inner {
   width: min(1200px, calc(100% - 104px));

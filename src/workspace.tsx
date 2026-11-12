@@ -22,7 +22,6 @@ import {
   Installments,
   ClientProfile,
 } from "./client-pages";
-import "./workspace.css";
 
 const adminLinks = [
   ["", "◫", "Resumen"],

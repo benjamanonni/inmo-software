@@ -1,11 +1,12 @@
 import { useDemo } from "../demo-data";
-export function DataStatus() {
+export function DataStatus({ inline = false }: { inline?: boolean }) {
   const { loading, error, reload } = useDemo();
+  const Heading = inline ? "h2" : "h1";
   return (
-    <section className="catalog-intro container">
-      <h1 className="serif">
+    <section className={inline ? undefined : "catalog-intro container"}>
+      <Heading className="serif">
         {loading ? "Cargando tu espacio…" : "No pudimos obtener los datos."}
-      </h1>
+      </Heading>
       <p role={error ? "alert" : "status"}>
         {error || "Estamos consultando la información autorizada."}
       </p>
