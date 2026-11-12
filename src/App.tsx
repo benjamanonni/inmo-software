@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Link, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { Footer, Header } from "./components";
 import { Catalog, Detail, Home } from "./pages";
@@ -7,7 +7,14 @@ import { Login } from "./features/auth/Login";
 import { demoMode } from "./integrations/supabase/client";
 import { DataStatus } from "./shared/DataStatus";
 import { DemoProvider, useDemo } from "./demo-data";
-import { Access, Workspace } from "./workspace";
+import "./workspace.css";
+
+const Workspace = lazy(() =>
+  import("./workspace").then(({ Workspace }) => ({ default: Workspace })),
+);
+const Access = lazy(() =>
+  import("./workspace").then(({ Access }) => ({ default: Access })),
+);
 
 function PropertyRoute() {
   const { id } = useParams();
@@ -66,30 +73,38 @@ function AppRoutes() {
       </a>
       {!workspace && <Header />}
       <main id="contenido" tabIndex={-1}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/propiedades" element={<Catalog />} />
-          <Route path="/propiedades/:id" element={<PropertyRoute />} />
-          <Route path="/acceso" element={demoMode ? <Access /> : <Login />} />
-          <Route path="/recuperar" element={<Login reset />} />
-          <Route
-            path="/admin/*"
-            element={
-              <Protected admin>
-                <Workspace admin />
-              </Protected>
-            }
-          />
-          <Route
-            path="/cliente/*"
-            element={
-              <Protected admin={false}>
-                <Workspace admin={false} />
-              </Protected>
-            }
-          />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <Suspense
+          fallback={
+            <p className="container" role="status">
+              Cargando tu espacio…
+            </p>
+          }
+        >
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/propiedades" element={<Catalog />} />
+            <Route path="/propiedades/:id" element={<PropertyRoute />} />
+            <Route path="/acceso" element={demoMode ? <Access /> : <Login />} />
+            <Route path="/recuperar" element={<Login reset />} />
+            <Route
+              path="/admin/*"
+              element={
+                <Protected admin>
+                  <Workspace admin />
+                </Protected>
+              }
+            />
+            <Route
+              path="/cliente/*"
+              element={
+                <Protected admin={false}>
+                  <Workspace admin={false} />
+                </Protected>
+              }
+            />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
       </main>
       {!workspace && <Footer />}
     </div>

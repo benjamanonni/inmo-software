@@ -1,0 +1,13 @@
+.git
+.env
+.env.*
+artifacts
+node_modules
+dist
+test-results
+playwright-report
+/supabase/
+automation
+tests
+docs
+*.log

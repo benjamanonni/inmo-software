@@ -1,43 +1,54 @@
-# Sistema de Gestión y Portal Web para Inmobiliaria
+# Crook Inmobiliaria — demo online
 
-Demo local. Inicio: 05/11/2026 (America/Argentina/Buenos_Aires).
+Actualizado: 06/11/2026. Interfaz original conservada; todos los clientes, contratos e importes son ficticios.
 
-## Estado real
+**Web:** https://crook-demo-online-preview.vercel.app
 
-**Crook** conserva su interfaz pública, administrativa y de comprador. Docker, WSL 2, Supabase y n8n ya están instalados en este equipo. Auth, RLS, persistencia, pagos, Storage y alta de cuentas se probaron contra el stack local real. n8n ejecutó la rama manual ficticia y generó un XLSX verificado. Drive, programación definitiva, SMTP externo y Preview siguen pendientes. Ver el [estado actual del entorno](docs/local-ready.md).
+- [Proyecto Vercel](https://vercel.com/benjamanonni5-1095/crook-demo-online): despliegue **Preview**, accesible sin iniciar sesión en Vercel.
+- [Supabase exclusivo de demo](https://supabase.com/dashboard/project/hrwgdwductfrgzlivvoo): `hrwgdwductfrgzlivvoo`.
+- Acceso privado por `/acceso`. Cada persona tiene su propia cuenta; el registro público está deshabilitado.
+- Contraseñas nuevas de Internet: `artifacts/ACCESOS-ONLINE.txt` en el equipo del propietario, fuera de Git y del despliegue. No son las contraseñas locales. No publicar ni compartir cuentas.
 
-Entradas: `/acceso` permite elegir perspectiva; `/admin` abre administración; `/cliente` abre el ejemplo de Lucía Fernández con un lote ya adquirido. El botón **Mi espacio** del sitio público lleva al acceso demo.
+Administrador, comprador, persistencia al recargar, aislamiento A/B, cuenta deshabilitada, pagos/anulaciones e historial, catálogo y comprobantes privados se verificaron contra Cloud y la URL pública. Ver [despliegue y evidencias](docs/deployment.md).
 
-## Ejecutar
+## Ejecutar localmente
 
 ```powershell
 cd 'C:\inmobiliaria demo'
 npm ci
-npm run dev
+npm run local:start
 ```
 
-Abrir http://127.0.0.1:5173/. Verificar con `npm run build`, `npm run typecheck` y `npm run test:e2e`. Las pruebas de navegador usan Microsoft Edge instalado; si no está disponible, configurar Chromium en playwright.config.ts e instalarlo con Playwright.
+`npm run dev` abre la interfaz visual con fixtures temporales. `npm run dev:live` utiliza Supabase configurado en `.env.local`. Los accesos locales están en `artifacts/ACCESOS-LOCALES.txt`. El build publicado exige `VITE_ENABLE_DEMO=false` y conexión HTTPS a Supabase Cloud, sin fallback a fixtures.
 
-`npm run dev` habilita explícitamente la demo visual solo en desarrollo. **Para el sistema local persistente ya configurado, ejecutar `npm run local:start`**. Las credenciales ficticias están en artifacts/ACCESOS-LOCALES.txt (privado y fuera de Git). El build no habilita datos ficticios silenciosamente ni el selector de roles demo.
+## Validación
 
-Build, typecheck, ESLint y pruebas locales aprobados. Consultar [informe full stack](docs/full-stack.md) para resultados, supuestos y estados reales; [ejecución y Preview](docs/deployment.md) para inicializar Supabase y las cuentas ficticias sin publicar secretos. Los documentos de diseño anteriores describen hitos históricos, no el estado actual de las integraciones.
+```powershell
+npm run lint
+npm run typecheck
+npm run build
+npm run test:unit
+npm run test:sql
+npm run test:e2e
+npm run test:connected-ui
+```
 
-La documentación local describe el análisis y las propuestas técnicas; Confluence conserva la autoridad sobre requisitos y decisiones formales. Una versión vigente no acredita por sí sola aprobación formal.
+Con Supabase local encendido: `npm run test:live` y `npm run test:live-browser`. Las pruebas cloud/online son separadas, explícitas y usan archivos privados; consultar [deployment.md](docs/deployment.md).
 
-## Documentación de trabajo
+## Reglas exclusivas de demostración
 
-- [Auditoría y discrepancias](docs/auditoria.md).
-- [Matriz de requisitos y pruebas previstas](docs/requisitos.md).
-- [Arquitectura y contratos propuestos](docs/arquitectura.md).
-- [Plan incremental y dependencias](docs/plan.md).
-- [Fuentes consultadas](docs/fuentes.md).
-- [Full stack y evidencias](docs/full-stack.md).
-- [Instalación y verificaciones reales actuales](docs/local-ready.md).
-- [Ejecución y despliegue Preview](docs/deployment.md).
-- [Workflow n8n y parámetros pendientes](automation/n8n/README.md).
+El usuario confirmó ARS, sin anticipo, 10% de interés TOTAL fijo, cuotas mensuales y una cuota por registro de pago. Ejemplo: precio $30.000.000, total $33.000.000, 48 cuotas de $687.500. Se admiten registros parciales mientras se define esa restricción. “A vencer” abarca el vencimiento y los cinco días anteriores. No hay indexación UVA ni capitalización. Estas reglas no constituyen aprobación para una operación inmobiliaria real. Los escenarios USD anteriores se conservan solamente en el entorno histórico local.
 
-## Límites
+## Pendientes externos
 
-Solo datos ficticios y entorno de demo. El usuario autorizó números y porcentajes inventados para diseñar las pantallas: USD 30.000 por lote, 20% de anticipo y 48 cuotas de USD 500, sin intereses. Estos cálculos ilustrativos no establecen reglas productivas. Sin pagos online ni modificaciones productivas. No se han creado recursos cloud, enviado correos, modificado documentos oficiales ni contratado servicios.
+SMTP/Resend y recuperación por correo externo no verificados. La vinculación automática GitHub→Vercel pide agregar una conexión de inicio de sesión con GitHub en Vercel; la publicación manual ya funciona. n8n/Drive no son dependencias de la web: falta conectar Cloud, autorizar Drive y definir destino, horario y retención antes de activar programación. No se contrató un plan pago ni se fusionó la rama con `main`.
 
-Pendiente externo: validar y conectar Drive/programación y verificar Preview/SMTP externo con configuración autorizada. No se realizó push ni despliegue.
+## Documentación
+
+- [Despliegue, actualización, logs y reversión](docs/deployment.md).
+- [Cobertura de requisitos](docs/requisitos.md).
+- [Estado full stack](docs/full-stack.md).
+- [Instalación local](docs/local-ready.md).
+- [n8n y parámetros pendientes](automation/n8n/README.md).
+
+Confluence conserva la autoridad sobre los requisitos formales. Los documentos de diseño y análisis inicial describen hitos históricos.

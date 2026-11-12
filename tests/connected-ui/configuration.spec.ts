@@ -3,9 +3,9 @@ test("unconfigured connected mode never exposes mock contracts or demo entry", a
   page,
 }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    "No pudimos obtener los datos",
-  );
+  await expect(
+    page.getByRole("heading", { name: "No pudimos obtener los datos." }),
+  ).toContainText("No pudimos obtener los datos");
   await expect(page.getByRole("alert")).toContainText(
     "Falta configurar Supabase",
   );

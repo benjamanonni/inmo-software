@@ -159,8 +159,8 @@ export function ClientOverview() {
       </div>
       <p className="demo-callout">
         Datos de demostración. Aportes y pendiente se muestran únicamente para
-        el escenario contractual cargado; no incluyen reglas de intereses, mora
-        ni refinanciación.
+        el escenario contractual cargado. El total incluye el interés definido
+        para ese contrato; no se agregan recargos de mora ni refinanciaciones.
       </p>
     </>
   );

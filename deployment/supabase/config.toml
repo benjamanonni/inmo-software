@@ -1,0 +1,7 @@
+# Isolated, fictitious demonstration only. Never target an operational database.
+project_id = "crook-cloud-demo"
+[auth]
+enable_signup = false
+minimum_password_length = 12
+site_url = "https://crook-demo-online-preview.vercel.app"
+additional_redirect_urls = ["https://crook-demo-online-preview.vercel.app/acceso", "https://crook-demo-online-preview.vercel.app/recuperar"]
